@@ -17,7 +17,7 @@ from scapy.utils import RawPcapWriter
 try:
     import argparse
 except:
-    print "python-argparse is needed"
+    print("python-argparse is needed")
     sys.exit(1)
 
 from usbmitm.utils import *
@@ -27,24 +27,26 @@ from usbmitm.dissect.usbpcap import *
 from usbmitm.dissect.usbmitm_proto import *
 import usbmitm.device.azerty as keyboard
 
+
 def usb_to_usbpcap(msg):
     pcap = USBPcap()
     pcap.urb_transfert = eptype_to_pcap_type[msg.ep.eptype]
     pcap.endpoint_direction = OUT if msg.ep.epdir == PROTO_OUT else IN
     pcap.endpoint_number = msg.ep.epnum
-    pcap.garbage = "\x00"*24
+    pcap.garbage = "\x00" * 24
     return pcap
+
 
 def usbdev_to_usbpcap(msg):
     """ Transform a USBMessageDevice message to a USBPcap message """
     pcap = usb_to_usbpcap(msg)
     pcap.urb_type = "C"
-    pcap.device_setup_request = 0x2d # No relevant
+    pcap.device_setup_request = 0x2d  # No relevant
     pcap.data_present = 0 if msg.ep.eptype == 1 else 0x3e
     if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN:
         pcap.descriptor = msg.response
-        pcap.urb_length = len(msg.response)+len(msg.data)
-        pcap.data_length = len(msg.response)+len(msg.data)
+        pcap.urb_length = len(msg.response) + len(msg.data)
+        pcap.data_length = len(msg.response) + len(msg.data)
     else:
         pcap.descriptor = None
         pcap.urb_length = len(msg.data)
@@ -53,11 +55,12 @@ def usbdev_to_usbpcap(msg):
     pcap.data = msg.data
     return pcap
 
+
 def usbhost_to_usbpcap(msg):
     """ Transform a USBMessageHost message to a USBPcap message """
     pcap = usb_to_usbpcap(msg)
     pcap.urb_type = "S"
-    pcap.device_setup_request = 0 # Relevant
+    pcap.device_setup_request = 0  # Relevant
     pcap.data_present = 0x3e if msg.ep.eptype == 1 else 0
     if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN:
         pcap.urb_length = msg.request.wLength
@@ -81,6 +84,7 @@ def req_from_msg(msg):
     req.urb_setup = None
     return req
 
+
 def ack_from_msg(msg):
     """ Find ack for the msg """
     ack = usb_to_usbpcap(msg)
@@ -96,18 +100,19 @@ def ack_from_msg(msg):
 
 class USBPcapWriter(Dissector):
     """ """
+
     _desc_ = "USB Pcap Writer"
 
     @classmethod
-    def create_arg_subparser(cls,parser):
-        parser.add_argument("--output","-o",metavar="PCAP_FILE",help="PCAP file")
+    def create_arg_subparser(cls, parser):
+        parser.add_argument("--output", "-o", metavar="PCAP_FILE", help="PCAP file")
 
-    def __init__(self,args):
-        super(USBPcapWriter,self).__init__(args)
-        self.pcap = RawPcapWriter(args.output,linktype=220,sync=True)
+    def __init__(self, args):
+        super(USBPcapWriter, self).__init__(args)
+        self.pcap = RawPcapWriter(args.output, linktype=220, sync=True)
         self.lock = Lock()
 
-    def hookUSBDevice(self,msg):
+    def hookUSBDevice(self, msg):
         # We do not receive REQUEST from host if type is not CTRL
         if msg.ep.eptype != CTRL:
             req = req_from_msg(msg)
@@ -117,7 +122,7 @@ class USBPcapWriter(Dissector):
         self.write_pcap(pkt)
         return msg
 
-    def hookUSBHost(self,msg):
+    def hookUSBHost(self, msg):
         pkt = usbhost_to_usbpcap(msg)
         self.write_pcap(pkt)
 
@@ -127,7 +132,7 @@ class USBPcapWriter(Dissector):
             self.write_pcap(ack)
         return msg
 
-    def write_pcap(self,msg):
+    def write_pcap(self, msg):
         self.lock.acquire()
         self.pcap.write(str(msg))
         self.lock.release()

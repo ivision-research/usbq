@@ -4,8 +4,8 @@ from threading import Event
 from collections import defaultdict
 import time
 
-from device import USBDevice
-from usbmitm.comm.udp import USBSocketDevice,USBSocketHost
+from .device import USBDevice
+from usbmitm.comm.udp import USBSocketDevice, USBSocketHost
 from usbmitm.usbinterceptor import USBInterceptor
 from usbmitm.device.keyboard import Keyboard
 
@@ -63,7 +63,6 @@ from usbmitm.device.keyboard import KeyboardInterface
 #         print "recv"
 
 
-
 # class KeyboardScan(Keyboard,_DeviceScan):
 #     def __init__(self,args):
 #         _DeviceScan.__init__(self)
@@ -105,9 +104,9 @@ from usbmitm.device.keyboard import KeyboardInterface
 
 
 class USBDeviceScan(USBDevice):
-    def __init__(self,args,name,interface,epin=None):
+    def __init__(self, args, name, interface, epin=None):
         ident = DeviceIdentity.from_interface(interface)
-        super(USBDeviceScan,self).__init__(args,ident)
+        super(USBDeviceScan, self).__init__(args, ident)
         self.name = name
         self.response = Event()
         self.timeout = 5.0
@@ -122,33 +121,45 @@ class USBDeviceScan(USBDevice):
 
     def communicate(self):
         if self.epin:
-            self.send_usb(USBMessageResponse(ep=self.epin,data=""))
+            self.send_usb(USBMessageResponse(ep=self.epin, data=""))
 
-    def recv_ack(self,msg):
+    def recv_ack(self, msg):
         if self.configured and self.epin:
             self.response.set()
 
-    def recv_usb(self,msg):
+    def recv_usb(self, msg):
         if self.configured and not self.epin:
-            if hasattr(msg,"request") and type(msg.request) is not SetIDLE:
+            if hasattr(msg, "request") and type(msg.request) is not SetIDLE:
                 self.response.set()
                 return
-        super(USBDeviceScan,self).recv_usb(msg)
+        super(USBDeviceScan, self).recv_usb(msg)
 
 
-MassStorageInterface = Interface(descriptors=[Endpoint(1,BULK,IN,512),Endpoint(1,BULK,OUT,512)],cls=8,subcls=6,proto=80)
-PrinterInterface = Interface(descriptors=[Endpoint(1,BULK,IN,64),Endpoint(1,BULK,OUT,64)],cls=7,subcls=1,proto=2)
+MassStorageInterface = Interface(
+    descriptors=[Endpoint(1, BULK, IN, 512), Endpoint(1, BULK, OUT, 512)],
+    cls=8,
+    subcls=6,
+    proto=80,
+)
+PrinterInterface = Interface(
+    descriptors=[Endpoint(1, BULK, IN, 64), Endpoint(1, BULK, OUT, 64)],
+    cls=7,
+    subcls=1,
+    proto=2,
+)
 
 DEVICES = [
     # KeyboardScan,
     # MassStorageScan
-    {"name":"Keyboard","interface":KeyboardInterface},
-    {"name":"Mass-Storage","interface":MassStorageInterface},
-    {"name":"Printer","interface":MassStorageInterface},
+    {"name": "Keyboard", "interface": KeyboardInterface},
+    {"name": "Mass-Storage", "interface": MassStorageInterface},
+    {"name": "Printer", "interface": MassStorageInterface},
 ]
+
 
 class USBScan(USBInterceptor):
     """ Scan accepted devices """
+
     DEVICE = None
     HOST = USBSocketHost
 
@@ -170,9 +181,9 @@ class USBScan(USBInterceptor):
             param["args"] = self.args
             device = USBDeviceScan(**param)
             if device.is_handled():
-                print "%s handled" % (device.name,)
+                print("%s handled" % (device.name,))
             else:
-                print "%s not handled" % (device.name,)
+                print("%s not handled" % (device.name,))
 
     # def __init__(self,args):
     #     identity_pkt = ManagementNewDevice(speed=3,device=DeviceDescriptor(),configuration=ConfigurationDescriptor())
