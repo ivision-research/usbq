@@ -22,7 +22,7 @@ class BytesFixedLenField(StrFixedLenField):
 
 class UnicodeStringLenField(StrLenField):
     def i2repr(self, pkt, v):
-        v = v.replace("\x00", "")
+        v = v.replace(b"\x00", b"")
         return repr(v)
 
 
@@ -33,6 +33,7 @@ class LESignedIntEnumField(EnumField):
 
 class TypePacketField(StrField):
     holds_packets = 1
+    __slots__ = StrField.__slots__ + ['type_pkt', 'type_field']
 
     def __init__(self, name, default, type_field, type_pkt, remain=0):
         StrField.__init__(self, name, default, remain=remain)

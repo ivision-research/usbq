@@ -15,6 +15,9 @@ except:
     print("python-argparse is needed")
     sys.exit(1)
 
+from binascii import hexlify
+from scapy.packet import Packet
+
 from usbmitm.comm.udp import USBSocketDevice, USBSocketHost
 from usbmitm.utils.utils import *
 from usbmitm.base import Forwarder
@@ -45,7 +48,10 @@ def extract_usb_part(data):
 
 
 def lhex(msg):
-    return " ".join([x.encode("hex") for x in str(msg)])
+    if issubclass(type(msg), Packet):
+        return repr(msg)
+    else:
+        return hexlify(msg).decode()
 
 
 class Dissector(Forwarder):
@@ -128,7 +134,7 @@ class Dissector(Forwarder):
         if type(data) is str or self.full:
             return "%r" % (data,)
         else:
-            return data.desc()
+            return lhex(data)
 
     def output_device(self, data):
         s = self.msg_colorize(data, self.fmt[0])

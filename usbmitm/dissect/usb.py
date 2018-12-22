@@ -73,7 +73,8 @@ class USBDescriptor(USBPacket):
         return p + pay
 
     def pre_dissect(self, s):
-        self.desc_len = len(s)
+        if hasattr(self, "desc_len"):
+            self.desc_len = len(s)
         return s
 
     def post_build(self, pkt, pay):
@@ -187,8 +188,8 @@ class SetIDLE(RequestDescriptor):
 
 
 def URB(payload):
-    breqtype = ord(payload[0])
-    breq = ord(payload[1])
+    breqtype = payload[0]
+    breq = payload[1]
     if breq == 6:
         cls = GetDescriptor
     elif breq == 1:
@@ -215,9 +216,9 @@ def Descriptor(payload):
 
     if len(payload) < 2:
         return RawDescriptor(payload)
-    desctype = ord(payload[1])
+    desctype = payload[1]
     if desctype == 1:
-        l = ord(payload[0])
+        l = payload[0]
         if l == 5:
             cls = HIDReportDescriptor
         elif len(payload) != 18:
