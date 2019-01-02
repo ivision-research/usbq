@@ -5,6 +5,7 @@ from scapy.packet import Packet
 
 from .fields import *
 from .usb import *
+from .defs import *
 
 __all__ = ['HIDReportDescriptor', 'HIDDescriptor', 'ReportDescriptor']
 

@@ -103,9 +103,19 @@ class USBQHookSpec:
         '''
 
     @hookspec(firstresult=True)
-    def usbq_user_input(self, key):
+    def usbq_host_decode(self, data):
         '''
-        Perform an action based on user-input.
+        Decode a raw USB packet from the host.
+        '''
 
-        Return value will be ignored.
+    @hookspec(firstresult=True)
+    def usbq_device_decode(self, data):
+        '''
+        Decode a raw USB packet from the device.
+        '''
+
+    @hookspec
+    def usbq_log_pkt(self, pkt):
+        '''
+        Log decoded packet.
         '''

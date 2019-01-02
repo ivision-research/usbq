@@ -102,6 +102,15 @@ _network_options = [
     ),
 ]
 
+_pcap_options = [
+    click.option(
+        '--pcap',
+        default='usb.pcap',
+        type=click.Path(dir_okay=False, writable=True, exists=False),
+        help='PCAP file to record USB traffic.',
+    )
+]
+
 
 def add_options(options):
     def _add_options(func):
@@ -120,7 +129,8 @@ def add_options(options):
 @main.command()
 @click.pass_context
 @add_options(_network_options)
-def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port):
+@add_options(_pcap_options)
+def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
     'Man-in-the-Middle USB device to host communications.'
 
     enable_plugins(
@@ -134,10 +144,12 @@ def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port):
                     'host_addr': proxy_addr,
                     'host_port': proxy_port,
                 },
-            )
+            ),
+            ('pcap', {'pcap': pcap}),
+            ('decode', {}),
         ],
     )
-    USBQEngine(pm).run()
+    USBQEngine().run()
 
 
 if __name__ == "__main__":

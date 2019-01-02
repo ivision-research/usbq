@@ -4,8 +4,10 @@
 from scapy.fields import *
 from scapy.packet import Packet
 
-from .fields import *
-from .usb import *
+from .dissect.defs import *
+
+from .dissect.fields import *
+from .dissect.usb import *
 
 # USBInspector protocol specific
 
@@ -17,13 +19,9 @@ NEW_DEVICE = 1
 RELOAD = 2
 
 mitm_type = {0: "USB", 1: "ACK", 2: "MANAGEMENT"}
-
 management_type = {RESET: "RESET", NEW_DEVICE: "NEW DEVICE", RELOAD: "RELOAD"}
-
 usbmessage_urb_type = {0: "CONTROL", 1: "ISOCHRONOUS", 2: "BULK", 3: "INTERRUPT"}
-
 usbmessage_urb_dir = {PROTO_IN: "IN", PROTO_OUT: "OUT"}
-
 usb_speed = {1: "LOW SPEED", 2: "FULL SPEED", 3: "HIGH SPEED"}
 
 
@@ -218,11 +216,3 @@ class USBMessageHost(USBMessage):
 
     def desc(self):
         return self.content.desc()
-
-
-if __name__ == "__main__":
-    s = sys.argv[1].replace(" ", "").decode("hex")
-    if len(sys.argv) == 2:
-        USBMessageDevice(s).show2()
-    else:
-        USBMessageHost(s).show()
