@@ -29,10 +29,11 @@ LOG_FIELD_STYLES = {
 @click.option('--version', is_flag=True, default=False, help='Show version.')
 @click.option('--debug', is_flag=True, default=False, help='Enable usbq debug logging.')
 @click.option(
-    '--list-plugins', is_flag=True, default=False, help='List available plugins'
+    '--list-plugins', is_flag=True, default=False, help='List available plugins.'
 )
+@click.option('--trace', is_flag=True, default=False, help='Trace plugins.')
 @click.pass_context
-def main(ctx, debug, version, list_plugins):
+def main(ctx, debug, trace, version, list_plugins):
     '''USBiquitous: USB Intrustion Toolkit'''
 
     if ctx.invoked_subcommand is None:
@@ -48,11 +49,22 @@ def main(ctx, debug, version, list_plugins):
             root = logging.getLogger()
             root.setLevel(logging.DEBUG)
 
+            # Colors and formats
             ch = logging.StreamHandler(sys.stdout)
             ch.setLevel(logging.DEBUG)
             formatter = ColoredFormatter(fmt=FORMAT, field_styles=LOG_FIELD_STYLES)
             ch.setFormatter(formatter)
             root.addHandler(ch)
+
+        if trace:
+            # Trace pluggy
+            tracer = logging.getLogger('trace')
+
+            def dotrace(msg):
+                tracer.debug(msg.strip('\n'))
+
+            pm.trace.root.setwriter(dotrace)
+            pm.enable_tracing()
 
     return 0
 
