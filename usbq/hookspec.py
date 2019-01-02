@@ -39,6 +39,11 @@ class USBQHookSpec:
     def usbq_wait_for_packet(self):
         '''
         Returns True if data is available from the USB host or device.
+
+        Plugin implementors such as PCAP replay should always
+        return True.
+
+        Wait no longer than 1 second before returning.
         '''
 
     @hookspec(firstresult=True)
@@ -95,4 +100,12 @@ class USBQHookSpec:
         The format is not defined and is dependent on the hook implementation.
 
         :param host: If True then send a packet to the USB Host, otherwise USB Device.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_user_input(self, key):
+        '''
+        Perform an action based on user-input.
+
+        Return value will be ignored.
         '''

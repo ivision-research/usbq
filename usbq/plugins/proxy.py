@@ -42,27 +42,24 @@ class ProxyPlugin:
         self._host_sock.setblocking(False)
         self._host_dst = (self.host_addr, self.host_port)
 
-    def _has_data(self, sock):
-        (read, write, error) = select.select([sock], self.EMPTY, [sock], 0)
+    def _has_data(self, socks, timeout=0):
+        (read, write, error) = select.select(socks, self.EMPTY, socks, timeout)
         if len(read) != 0:
             return True
         return False
 
     @hookimpl
-    def usbq_has_host_packet(self):
-        return self._has_data(self._host_sock)
+    def usbq_host_has_packet(self):
+        return self._has_data([self._host_sock])
 
     @hookimpl
-    def usbq_has_device_packet(self):
-        return self._has_data(self._device_sock)
+    def usbq_device_has_packet(self):
+        return self._has_data([self._device_sock])
 
     @hookimpl
     def usbq_wait_for_packet(self):
         socks = [self._host_sock, self._device_sock]
-        (read, write, error) = select.select(socks, self.EMPTY, socks, 10)
-        if len(read) != 0:
-            return True
-        return False
+        return self._has_data(socks, timeout=1)
 
     @hookimpl
     def usbq_get_host_packet(self):

@@ -1,11 +1,14 @@
 import attr
 import logging
+import sys
+import select
 
 from .exceptions import USBQDeviceNotConnected
 
 __all__ = ['USBQEngine']
 
 log = logging.getLogger(__name__)
+EMPTY = []
 
 
 @attr.s
@@ -36,12 +39,12 @@ class USBQEngine:
                 # Used to prevent busy loop
                 self.pm.hook.usbq_wait_for_packet()
 
-                if self.pm.hook.usbq_has_device_packet()[0]:
+                if self.pm.hook.usbq_device_has_packet():
                     self._do_device_packet()
 
-                if self.pm.hook.usbq_has_host_packet()[0]:
+                if self.pm.hook.usbq_host_has_packet():
                     self._do_host_packet()
 
         except KeyboardInterrupt:
-            log.debug('Normal exit from Control-C.')
+            log.debug('Control-C: User requested exit.')
             pass
