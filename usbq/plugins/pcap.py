@@ -21,12 +21,12 @@ class PcapFileWriter:
     pcap = attr.ib(converter=str)
 
     def __attrs_post_init__(self):
+        log.info(f'Logging packets to PCAP file {self.pcap}')
         self._pcap = RawPcapWriter(self.pcap, linktype=220, sync=True)
 
     def _do_host(self, msg):
         # Convert and write
         pcap_pkt = usbhost_to_usbpcap(msg)
-        log.debug(pcap_pkt)
         self._pcap.write(raw(pcap_pkt))
 
         # We do not receive ACK from device for OUT data
