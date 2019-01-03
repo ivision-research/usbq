@@ -22,7 +22,7 @@ class USBQEngine:
         pm.hook.usbq_log_pkt(pkt=pkt)
 
         # Mangle
-        pm.hook.usbq_mangle(pkt=pkt)
+        pm.hook.usbq_device_mangle(pkt=pkt)
 
         # Encode
         send_data = pm.hook.usbq_device_encode(pkt=pkt)
@@ -38,7 +38,7 @@ class USBQEngine:
         pm.hook.usbq_log_pkt(pkt=pkt)
 
         # Mangle
-        pm.hook.usbq_mangle(pkt=pkt)
+        pm.hook.usbq_host_mangle(pkt=pkt)
 
         # Encode
         send_data = pm.hook.usbq_host_encode(pkt=pkt)

@@ -145,9 +145,19 @@ class USBQHookSpec:
         '''
 
     @hookspec(firstresult=True)
-    def usbq_mangle(self, pkt):
+    def usbq_host_mangle(self, pkt):
         '''
-        Perform arbitrary mangling of USB packets.
+        Perform arbitrary mangling of USB host packets.
+
+        :param pkt: Decoded USBQ packet. pkt.content is the USB payload.
+
+        Modify pkt in place. Returned value is ignored.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_device_mangle(self, pkt):
+        '''
+        Perform arbitrary mangling of USB device packets.
 
         :param pkt: Decoded USBQ packet. pkt.content is the USB payload.
 
