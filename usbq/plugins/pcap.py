@@ -4,10 +4,9 @@ import logging
 from scapy.utils import RawPcapWriter
 from scapy.all import raw
 
-from ..pm import pm
 from ..hookspec import hookimpl
-from ..usbpcap import *
-from ..usbmitm_proto import USBMessageHost, USBMessageDevice, PROTO_OUT
+from ..usbpcap import ack_from_msg, req_from_msg, usbdev_to_usbpcap, usbhost_to_usbpcap
+from ..usbmitm_proto import PROTO_OUT, USBMessageDevice
 from ..dissect.defs import CTRL
 
 log = logging.getLogger(__name__)

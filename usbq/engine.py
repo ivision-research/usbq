@@ -1,7 +1,5 @@
 import attr
 import logging
-import sys
-import select
 
 from .exceptions import USBQDeviceNotConnected
 from .pm import pm
@@ -38,7 +36,6 @@ class USBQEngine:
             pm.hook.usbq_send_device_packet(data=data)
         except USBQDeviceNotConnected:
             log.info('USB device not connected yet. Dropping packet from host.')
-            pass
 
     def run(self):
         try:
@@ -55,4 +52,3 @@ class USBQEngine:
 
         except KeyboardInterrupt:
             log.debug('Control-C: User requested exit.')
-            pass

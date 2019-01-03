@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from scapy.fields import *
-from scapy.packet import Packet
 
 from .fields import *
 from .usb import *

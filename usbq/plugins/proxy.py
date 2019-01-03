@@ -3,7 +3,6 @@ import logging
 import socket
 import select
 
-from frozendict import frozendict
 from ..hookspec import hookimpl
 from ..exceptions import USBQDeviceNotConnected
 
