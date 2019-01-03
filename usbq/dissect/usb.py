@@ -195,7 +195,7 @@ def Descriptor(payload):
         if l == 5:
             cls = HIDReportDescriptor
         elif len(payload) != 18:
-            cls = RawDescriptor(payload)
+            cls = RawDescriptor
         else:
             cls = DeviceDescriptor
     elif desctype == CONFIGURATION_DESCRIPTOR:

@@ -57,7 +57,7 @@ def usbdev_to_usbpcap(msg):
     pcap.urb_type = "C"
     pcap.device_setup_request = 0x2d  # No relevant
     pcap.data_present = 0 if msg.ep.eptype == 1 else 0x3e
-    if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN:
+    if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN and msg.response is not None:
         pcap.descriptor = msg.response
         pcap.urb_length = len(msg.response) + len(msg.data)
         pcap.data_length = len(msg.response) + len(msg.data)
@@ -91,8 +91,8 @@ def usbhost_to_usbpcap(msg):
 def req_from_msg(msg):
     """ Find request that has generated msg """
     req = usb_to_usbpcap(msg)
-    pcap.urb_type = "S"
-    req.status = -115
+    req.urb_type = "S"
+    # req.status = -115
     req.urb_length = len(msg.data)
     req.data_length = 0
     req.urb_setup = None
