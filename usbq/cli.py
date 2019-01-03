@@ -5,7 +5,6 @@ import click
 import logging
 
 from coloredlogs import ColoredFormatter
-from frozendict import frozendict
 
 from . import __version__
 from .pm import pm, AVAILABLE_PLUGINS, enable_plugins
@@ -26,23 +25,18 @@ LOG_FIELD_STYLES = {
 
 
 @click.group(invoke_without_command=True)
-@click.option('--version', is_flag=True, default=False, help='Show version.')
 @click.option('--debug', is_flag=True, default=False, help='Enable usbq debug logging.')
-@click.option(
-    '--list-plugins', is_flag=True, default=False, help='List available plugins.'
-)
 @click.option('--trace', is_flag=True, default=False, help='Trace plugins.')
 @click.pass_context
-def main(ctx, debug, trace, version, list_plugins):
+def main(ctx, debug, trace):
     '''USBiquitous: USB Intrustion Toolkit'''
 
     if ctx.invoked_subcommand is None:
-        if version:
-            click.echo(f'usbq version {__version__}')
-        if list_plugins:
-            click.echo('Available plugins:\n')
-            for pd in sorted(AVAILABLE_PLUGINS.values(), key=lambda pd: pd.name):
-                click.echo(f'- {pd.name}: {pd.desc}')
+        click.echo(f'usbq version {__version__}\n')
+        click.echo(ctx.get_help())
+        click.echo('\nAvailable plugins:\n')
+        for pd in sorted(AVAILABLE_PLUGINS.values(), key=lambda pd: pd.name):
+            click.echo(f'- {pd.name}: {pd.desc}')
     else:
         if debug:
             # Turn on logging
