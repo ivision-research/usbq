@@ -135,13 +135,10 @@ class USBPcap(Packet):
             PacketField("urb_setup", GetDescriptor(), URB),
             lambda p: p.urb_transfert == 2 and p.urb_type == "S",
         ),
-        # added max(0, ...) unclear why needed
         BytesFixedLenField(
             "garbage",
             pcap_garbage,
-            length_from=lambda p: 24
-            if p.urb_setup is None
-            else max(0, 24 - len(str(p.urb_setup))),
+            length_from=lambda p: 24 if p.urb_setup is None else 24 - len(p.urb_setup),
         ),
         ConditionalField(
             PacketField("descriptor", DeviceDescriptor(), Descriptor),
