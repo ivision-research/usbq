@@ -25,6 +25,8 @@ class USBQPluginDef:
     #: Class
     clsname = attr.ib(converter=str)
 
+    optional = attr.ib(converter=bool, default=False)
+
 
 class USBQHookSpec:
     @hookspec
@@ -109,7 +111,7 @@ class USBQHookSpec:
 
         :param data: Raw bytes from USBQ driver.
 
-        Decode raw data to higher level format.
+        Return decoded raw data.
         '''
 
     @hookspec(firstresult=True)
@@ -119,7 +121,7 @@ class USBQHookSpec:
 
         :param data: Raw bytes from USBQ driver.
 
-        Decode raw data to higher level format.
+        Return decoded raw data.
         '''
 
     @hookspec(firstresult=True)
@@ -127,9 +129,9 @@ class USBQHookSpec:
         '''
         Encode a packet to raw data to be sent to the USBQ driver.
 
-        :param pkt: Encoded packet
+        :param pkt: Decoded packet
 
-        Encode packet to raw data to be sent to the USBQ driver.
+        Return encoded packet to be sent to the USBQ driver.
         '''
 
     @hookspec(firstresult=True)
@@ -137,9 +139,19 @@ class USBQHookSpec:
         '''
         Encode a packet to raw data to be sent to the USBQ driver.
 
-        :param pkt: Encoded packet
+        :param pkt: Decoded packet
 
-        Encode packet to raw data to be sent to the USBQ driver.
+        Return encoded packet to be sent to the USBQ driver.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_mangle(self, pkt):
+        '''
+        Perform arbitrary mangling of USB packets.
+
+        :param pkt: Decoded USBQ packet. pkt.content is the USB payload.
+
+        Modify pkt in place. Returned value is ignored.
         '''
 
     @hookspec
@@ -148,5 +160,7 @@ class USBQHookSpec:
         Log decoded packet.
 
         :param pkt: Decoded protocol packet.
+
+        Returned value is ignored.
         '''
 
