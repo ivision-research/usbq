@@ -21,9 +21,15 @@ def usbq_declare_plugins():
         ),
         'decode': USBQPluginDef(
             name='decode',
-            desc='Decode raw USB packets to Scapy representation.',
+            desc='Decode raw USBQ driver packets to Scapy representation.',
             mod='usbq.plugins.decode',
             clsname='USBDecode',
+        ),
+        'encode': USBQPluginDef(
+            name='encode',
+            desc='Encode raw USBQ driver packets to Scapy representation.',
+            mod='usbq.plugins.encode',
+            clsname='USBEncode',
         ),
     }
 

@@ -141,6 +141,7 @@ def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
             ),
             ('pcap', {'pcap': pcap}),
             ('decode', {}),
+            ('encode', {}),
         ],
     )
     USBQEngine().run()

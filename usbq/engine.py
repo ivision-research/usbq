@@ -21,8 +21,11 @@ class USBQEngine:
         pkt = pm.hook.usbq_device_decode(data=data)
         pm.hook.usbq_log_pkt(pkt=pkt)
 
+        # Encode
+        send_data = pm.hook.usbq_device_encode(pkt=pkt)
+
         # Forward
-        pm.hook.usbq_send_host_packet(data=data)
+        pm.hook.usbq_send_host_packet(data=send_data)
 
     def _do_host_packet(self):
         data = pm.hook.usbq_get_host_packet()
@@ -30,6 +33,9 @@ class USBQEngine:
         # Decode and log
         pkt = pm.hook.usbq_host_decode(data=data)
         pm.hook.usbq_log_pkt(pkt=pkt)
+
+        # Encode
+        send_data = pm.hook.usbq_host_encode(pkt=pkt)
 
         # Forward
         try:

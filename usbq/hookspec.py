@@ -106,16 +106,47 @@ class USBQHookSpec:
     def usbq_host_decode(self, data):
         '''
         Decode a raw USB packet from the host.
+
+        :param data: Raw bytes from USBQ driver.
+
+        Decode raw data to higher level format.
         '''
 
     @hookspec(firstresult=True)
     def usbq_device_decode(self, data):
         '''
         Decode a raw USB packet from the device.
+
+        :param data: Raw bytes from USBQ driver.
+
+        Decode raw data to higher level format.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_host_encode(self, pkt):
+        '''
+        Encode a packet to raw data to be sent to the USBQ driver.
+
+        :param pkt: Encoded packet
+
+        Encode packet to raw data to be sent to the USBQ driver.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_device_encode(self, pkt):
+        '''
+        Encode a packet to raw data to be sent to the USBQ driver.
+
+        :param pkt: Encoded packet
+
+        Encode packet to raw data to be sent to the USBQ driver.
         '''
 
     @hookspec
     def usbq_log_pkt(self, pkt):
         '''
         Log decoded packet.
+
+        :param pkt: Decoded protocol packet.
         '''
+
