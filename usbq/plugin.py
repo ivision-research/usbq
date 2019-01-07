@@ -31,5 +31,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.encode',
             clsname='USBEncode',
         ),
+        'hostscan': USBQPluginDef(
+            name='hostscan',
+            desc='Scan host for supported devices.',
+            mod='usbq.plugins.hostscan',
+            clsname='USBHostScan',
+        ),
     }
 

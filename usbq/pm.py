@@ -29,12 +29,16 @@ AVAILABLE_PLUGINS['usbq_hooks'] = USBQPluginDef(
 )
 
 
-def enable_plugins(pm, pmlist):
+def enable_plugins(pm, pmlist, disabled=[]):
     for pdinfo in pmlist + [('usbq_hooks', {})]:
         pdname, pdopts = pdinfo
 
         if pdname not in AVAILABLE_PLUGINS:
             raise ValueError(f'{pdname} is not a valid USBQ plugin.')
+
+        if pdname in disabled:
+            log.info(f'Disabling plugin {pdname}.')
+            continue
 
         pd = AVAILABLE_PLUGINS[pdname]
 

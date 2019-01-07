@@ -94,6 +94,9 @@ _network_options = [
         help='Port to bind to for incoming packets from the USB MITM proxy hardware.',
         envvar='USBQ_LISTEN_PORT',
     ),
+    click.option(
+        '--disable-plugin', type=str, multiple=True, default=[], help='Disable plugin'
+    ),
 ]
 
 _pcap_options = [
@@ -115,6 +118,23 @@ def add_options(options):
     return _add_options
 
 
+def standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+    return [
+        (
+            'proxy',
+            {
+                'device_addr': listen_addr,
+                'device_port': listen_port,
+                'host_addr': proxy_addr,
+                'host_port': proxy_port,
+            },
+        ),
+        ('pcap', {'pcap': pcap}),
+        ('decode', {}),
+        ('encode', {}),
+    ]
+
+
 #
 # Commands
 #
@@ -124,25 +144,28 @@ def add_options(options):
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+def mitm(ctx, disable_plugin, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
     'Man-in-the-Middle USB device to host communications.'
 
     enable_plugins(
         pm,
-        [
-            (
-                'proxy',
-                {
-                    'device_addr': listen_addr,
-                    'device_port': listen_port,
-                    'host_addr': proxy_addr,
-                    'host_port': proxy_port,
-                },
-            ),
-            ('pcap', {'pcap': pcap}),
-            ('decode', {}),
-            ('encode', {}),
-        ],
+        standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap),
+        disabled=disable_plugin,
+    )
+    USBQEngine().run()
+
+
+@main.command()
+@click.pass_context
+@add_options(_network_options)
+@add_options(_pcap_options)
+def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+    'Scan USB host for supported devices.'
+
+    enable_plugins(
+        pm,
+        standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap)
+        + [('hostscan', {})],
     )
     USBQEngine().run()
 
