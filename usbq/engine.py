@@ -56,6 +56,7 @@ class USBQEngine:
             pm.hook.usbq_send_device_packet(data=data)
         except USBQDeviceNotConnected:
             log.info('USB device not connected yet. Dropping packet from host.')
+            raise
 
     def run(self):
         try:

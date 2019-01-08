@@ -101,11 +101,9 @@ class ProxyPlugin:
 
     @hookimpl
     def usbq_send_host_packet(self, data):
-        return self._host_sock.sendto(data, self._host_dst)
+        return self._host_sock.sendto(data, self._host_dst) > 0
 
     @hookimpl
     def usbq_send_device_packet(self, data):
-        if self._device_dst is None:
-            raise USBQDeviceNotConnected()
-
-        return self._device_sock.sendto(data, self._device_dst)
+        if self._device_dst is not None:
+            return self._device_sock.sendto(data, self._device_dst) > 0

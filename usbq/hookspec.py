@@ -198,6 +198,8 @@ class USBQHookSpec:
         The format is not defined and is dependent on the hook implementation.
 
         :param host: If True then send a packet to the USB Host, otherwise USB Device.
+
+        Return True if the data was sent.
         '''
 
     @hookspec(firstresult=True)
@@ -208,6 +210,8 @@ class USBQHookSpec:
         The format is not defined and is dependent on the hook implementation.
 
         :param host: If True then send a packet to the USB Host, otherwise USB Device.
+
+        Return True if the data was sent.
         '''
 
     #
