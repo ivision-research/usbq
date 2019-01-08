@@ -11,7 +11,7 @@ from .pm import pm, AVAILABLE_PLUGINS, enable_plugins
 from .engine import USBQEngine
 
 
-__all__ = ['enable_logging', 'TaskLogger']
+__all__ = []
 log = logging.getLogger(__name__)
 
 FORMAT = '%(levelname)8s [%(name)24s]: %(message)s'
@@ -155,17 +155,33 @@ def mitm(ctx, disable_plugin, proxy_addr, proxy_port, listen_addr, listen_port, 
     USBQEngine().run()
 
 
+# @main.command()
+# @click.pass_context
+# @add_options(_network_options)
+# @add_options(_pcap_options)
+# def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+#     'Scan USB host for supported devices.'
+
+#     enable_plugins(
+#         pm,
+#         standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap)
+#         + [('hostscan', {})],
+#     )
+#     USBQEngine().run()
+
+
 @main.command()
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
-    'Scan USB host for supported devices.'
+@click.argument('CL:SC:PR')
+def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, **kwargs):
+    cl, sc, pr = kwargs['cl:sc:pr'].split(':')
 
     enable_plugins(
         pm,
-        standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap)
-        + [('hostscan', {})],
+        standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
+        + [('device', {'dclass': cl, 'dsubclass': sc, 'dproto': pr})],
     )
     USBQEngine().run()
 

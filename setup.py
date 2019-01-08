@@ -13,6 +13,7 @@ requirements = [
     'attrs',
     'frozendict',
     'coloredlogs',
+    'python-statemachine',
 ]
 
 setup_requirements = ['pytest-runner']

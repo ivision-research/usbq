@@ -9,7 +9,22 @@ from .dissect.defs import *
 from .dissect.fields import *
 from .dissect.usb import *
 
-# USBInspector protocol specific
+__all__ = [
+    'USBMessageHost',
+    'USBMessageDevice',
+    'ManagementMessage',
+    'ManagementReset',
+    'ManagementNewDevice',
+    'ManagementReload',
+    'USBMessageRequest',
+    'USBMessageResponse',
+    'USBAck',
+    'RESET',
+    'NEW_DEVICE',
+    'RELOAD',
+    'PROTO_IN',
+    'PROTO_OUT',
+]
 
 PROTO_IN = 0
 PROTO_OUT = 1
@@ -132,6 +147,8 @@ class ManagementReload(USBMitm):
 
 
 class ManagementMessage(USBMitm):
+    'USBQ management message'
+
     fields_desc = [
         EnumField("management_type", None, management_type, "<I"),
         TypePacketField(
@@ -185,6 +202,8 @@ class USBMessage(USBMitm):
 
 
 class USBMessageDevice(USBMessage):
+    'UDP packet payload from ubq_core bearing USB traffic from device->host.'
+
     name = "USBMessageDevice"
     fields_desc = [
         LEIntField("len", None),
@@ -202,6 +221,8 @@ class USBMessageDevice(USBMessage):
 
 
 class USBMessageHost(USBMessage):
+    'UDP packet payload from ubq_core bearing USB traffic from host->device.'
+
     name = "USBMessageHost"
     fields_desc = [
         LEIntField("len", None),

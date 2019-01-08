@@ -6,7 +6,7 @@ from scapy.all import raw
 
 from ..hookspec import hookimpl
 from ..usbpcap import ack_from_msg, req_from_msg, usbdev_to_usbpcap, usbhost_to_usbpcap
-from ..usbmitm_proto import PROTO_OUT, USBMessageDevice
+from ..usbmitm_proto import PROTO_OUT, USBMessageDevice, USBMessageHost
 from ..dissect.defs import CTRL
 
 log = logging.getLogger(__name__)
@@ -45,13 +45,14 @@ class PcapFileWriter:
 
     @hookimpl
     def usbq_log_pkt(self, pkt):
-        # Only log USB type packets to the pcap file
-        if pkt.type != 0:
-            return
+        # Only log USB Host or Device type packets to the pcap file
+        if type(pkt) in [USBMessageDevice, USBMessageHost]:
+            if pkt.type != 0:
+                return
 
-        msg = pkt.content
-        if type(pkt) == USBMessageDevice:
-            self._do_device(msg)
-        else:
-            self._do_host(msg)
+            msg = pkt.content
+            if type(pkt) == USBMessageDevice:
+                self._do_device(msg)
+            else:
+                self._do_host(msg)
 
