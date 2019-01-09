@@ -210,7 +210,16 @@ class USBQHookSpec:
         Handle the endpoint request.
 
         :param dev: USBDevice instance.
-        :param req: USBMessageRequest instance.
+        :param content: USBMessageRequest content.
 
         Return a non-None value if the request has been processed.
+        '''
+
+    #
+    # Management
+    #
+    @hookspec
+    def usbq_teardown(self):
+        '''
+        USBQ is terminating (kindly). Perform any teardown steps that are required.
         '''

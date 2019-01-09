@@ -76,3 +76,4 @@ class USBQEngine:
 
         except KeyboardInterrupt:
             log.debug('Control-C: User requested exit.')
+            pm.hook.usbq_teardown()

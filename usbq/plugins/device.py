@@ -19,7 +19,7 @@ from ..usbmitm_proto import (
 )
 from ..model import DeviceIdentity
 from ..dissect.defs import *
-from ..dissect.usb import GetDescriptor
+from ..dissect.usb import GetDescriptor, SetConfiguration
 
 __all__ = ['USBDevice']
 
@@ -45,10 +45,12 @@ class USBDevice(StateMachine):
     # States
     disconnected = State('disconnected', initial=True)
     connected = State('connected')
+    configured = State('configured')
 
     # Valid state transitions
     connect = disconnected.to(connected)
-    disconnect = connected.to(disconnected)
+    configure = connected.to(configured)
+    disconnect = connected.to(disconnected) | configured.to(disconnected)
 
     _msgtypes = {ManagementMessage: 2, USBMessageResponse: 0}
 
@@ -57,6 +59,7 @@ class USBDevice(StateMachine):
         super().__init__()
         self._pkt_out = []
         self._pkt_in = []
+        self._configuration = None
 
     # Proxy hooks
 
@@ -114,7 +117,7 @@ class USBDevice(StateMachine):
         'Connect to the USB Host by queuing a new identity packet.'
 
         # fetch device identity of the emulated device
-        log.info('Connecting emulated USB device')
+        log.info('Connecting emulated USB device.')
         self._send_to_host(
             ManagementMessage(
                 management_type=NEW_DEVICE,
@@ -125,12 +128,15 @@ class USBDevice(StateMachine):
     def on_disconnect(self):
         'Disconnect from the USB Host'
 
-        log.info('Disconnecting emulated USB device')
+        log.info('Disconnecting emulated USB device.')
         self._send_to_host(
             ManagementMessage(
                 management_type=RESET, management_content=ManagementReset()
             )
         )
+
+    def on_configure(self):
+        log.info(f'Device configuration set to {self._configuration}.')
 
     # Message handling
 
@@ -145,8 +151,8 @@ class USBDevice(StateMachine):
         if not (
             ep.epnum == 0
             and ep.eptype == 0
-            and ep.epdir == 0
-            and type(req) == GetDescriptor
+            # and ep.epdir == 0
+            and type(req) in [GetDescriptor, SetConfiguration]
         ):
             return
 
@@ -158,3 +164,11 @@ class USBDevice(StateMachine):
                     USBMessageResponse(ep=ep, request=req, response=desc)
                 )
                 return True
+        # Set Configuration
+        elif req.bRequest == 9:
+            self._configuration = req.bConfigurationValue
+            self.configure()
+
+    @hookimpl
+    def usbq_teardown(self):
+        self.disconnect()
