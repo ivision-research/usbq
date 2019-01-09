@@ -12,16 +12,18 @@ from ..usbmitm_proto import (
     ManagementMessage,
     ManagementReset,
     ManagementNewDevice,
+    USBMessageRequest,
+    USBMessageResponse,
     NEW_DEVICE,
     RESET,
 )
 from ..model import DeviceIdentity
+from ..dissect.defs import *
+from ..dissect.usb import GetDescriptor
 
 __all__ = ['USBDevice']
 
 log = logging.getLogger(__name__)
-
-dehex = lambda v: int(v, base=16)
 
 
 @attr.s(cmp=False)
@@ -29,13 +31,16 @@ class USBDevice(StateMachine):
     'Plugin for a stubbed out emulated USB device.'
 
     #: USB device class, hex
-    dclass = attr.ib(converter=dehex)
+    _dclass = attr.ib(converter=int)
 
     #: USB device class
-    dsubclass = attr.ib(converter=dehex)
+    _dsubclass = attr.ib(converter=int)
 
     #: USB device class
-    dproto = attr.ib(converter=dehex)
+    _dproto = attr.ib(converter=int)
+
+    #: USB Device Identity
+    _ident = attr.ib(default=attr.Factory(DeviceIdentity))
 
     # States
     disconnected = State('disconnected', initial=True)
@@ -44,6 +49,8 @@ class USBDevice(StateMachine):
     # Valid state transitions
     connect = disconnected.to(connected)
     disconnect = connected.to(disconnected)
+
+    _msgtypes = {ManagementMessage: 2, USBMessageResponse: 0}
 
     def __attrs_post_init__(self):
         # Workaround to mesh attr and StateMachine
@@ -64,6 +71,7 @@ class USBDevice(StateMachine):
 
     @hookimpl
     def usbq_send_device_packet(self, data):
+        assert type(data) == USBMessageHost
         self._pkt_in.append(data)
         return True
 
@@ -86,11 +94,19 @@ class USBDevice(StateMachine):
         if self.is_disconnected:
             self.connect()
 
+        while len(self._pkt_in) > 0:
+            msg = self._pkt_in.pop(0)
+
+            if type(msg.content) == USBMessageRequest:
+                pm.hook.usbq_handle_device_request(dev=self, content=msg.content)
+            else:
+                raise NotImplementedError(f'Don\'t know how to handle {type(msg)} yet.')
+
+        return True
+
     def _send_to_host(self, content):
-        if type(content) in [ManagementMessage]:
-            self._pkt_out.append(USBMessageDevice(type=2, content=content))
-        else:
-            raise NotImplementedError(f'Add packet type: {type(content)}')
+        msgtype = self._msgtypes[type(content)]
+        self._pkt_out.append(USBMessageDevice(type=msgtype, content=content))
 
     # State handlers
 
@@ -99,10 +115,10 @@ class USBDevice(StateMachine):
 
         # fetch device identity of the emulated device
         log.info('Connecting emulated USB device')
-        ident = DeviceIdentity()
         self._send_to_host(
             ManagementMessage(
-                management_type=NEW_DEVICE, management_content=ident.to_new_identity()
+                management_type=NEW_DEVICE,
+                management_content=self._ident.to_new_identity(),
             )
         )
 
@@ -115,3 +131,30 @@ class USBDevice(StateMachine):
                 management_type=RESET, management_content=ManagementReset()
             )
         )
+
+    # Message handling
+
+    @hookimpl
+    def usbq_handle_device_request(self, dev, content):
+        'Process EP0 CONTROL requests for descriptors'
+
+        ep = content.ep
+        req = content.request
+
+        # Handle EP0 CONTROL
+        if not (
+            ep.epnum == 0
+            and ep.eptype == 0
+            and ep.epdir == 0
+            and type(req) == GetDescriptor
+        ):
+            return
+
+        # Descriptor request
+        if req.bRequest == 6:
+            desc = self._ident.from_request(req)
+            if desc is not None:
+                self._send_to_host(
+                    USBMessageResponse(ep=ep, request=req, response=desc)
+                )
+                return True

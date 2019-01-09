@@ -239,9 +239,9 @@ class DeviceDescriptor(USBDescriptor):
         XLEShortEnumField("idVendor", 0x6464, idVendor),
         XLEShortEnumField("idProduct", 0x6464, idProduct),
         LEShortField("bcdDevice", 0x0200),
-        XByteField("iManufacturer", 0),
+        XByteField("iManufacturer", 1),
         XByteField("iProduct", 2),
-        ByteField("iSerialNumber", 0),
+        ByteField("iSerialNumber", 3),
         ByteField("bNumConfigurations", 1),
     ]
 

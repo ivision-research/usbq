@@ -1,5 +1,7 @@
 import attr
+import logging
 
+from scapy.all import raw
 from collections import defaultdict
 
 from ..dissect.defs import *
@@ -7,6 +9,8 @@ from ..dissect.usb import *
 from ..usbmitm_proto import ManagementNewDevice
 
 __all__ = ['DeviceIdentity']
+
+log = logging.getLogger(__name__)
 
 
 @attr.s
@@ -48,11 +52,13 @@ DEFAULT_DESCRIPTORS = {
         )
     ],
     STRING_DESCRIPTOR: [
+        # Supported languages
         StringDescriptor(),
+        StringDescriptor(bString='USBIQUITOUS'.encode('utf-16le')),
         StringDescriptor(
-            bString="USBiquitous emulated generic device".encode('utf-16le')
+            bString='USBiquitous emulated generic device'.encode('utf-16le')
         ),
-        StringDescriptor(bString="USBIQUITOUS".encode('utf-16le')),
+        StringDescriptor(bString='0xDEADBEEF'.encode('utf-16le')),
     ],
 }
 
@@ -71,14 +77,14 @@ def to_descriptor_dict(v):
 
 @attr.s
 class DeviceIdentity:
-    """ Set of usb descriptors that characterize a device """
+    ''' Set of usb descriptors that characterize a device '''
 
     descriptors = attr.ib(converter=to_descriptor_dict, default=DEFAULT_DESCRIPTORS)
     speed = attr.ib(default=HIGH_SPEED)
 
     @classmethod
     def from_interface(cls, interface, *args, **kargs):
-        """ Create an identity from an interface """
+        ''' Create an identity from an interface '''
         conf = ConfigurationDescriptor(descriptors=interface.descriptors)
         return cls([conf], *args, **kargs)
 
@@ -87,7 +93,7 @@ class DeviceIdentity:
             return self.descriptors[i]
 
     def from_request(self, request):
-        """ Return the corresponding Descriptor asked in the request """
+        ''' Return the corresponding Descriptor asked in the request '''
         try:
             if request.bDescriptorType == STRING_DESCRIPTOR:
                 string_desc = self[STRING_DESCRIPTOR]
@@ -96,13 +102,15 @@ class DeviceIdentity:
                 else:
                     res = string_desc[request.descriptor_index]
             else:
+                # Conversion to raw is used to trim descriptor if required by host
                 if request.bDescriptorType == CONFIGURATION_DESCRIPTOR:
                     l = request.wLength
-                    res = Descriptor(str(self[request.bDescriptorType][0])[:l])
+                    res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
                 else:
                     l = request.wLength
-                    res = Descriptor(str(self[request.bDescriptorType][0])[:l])
-        except:
+                    res = Descriptor(raw(self[request.bDescriptorType])[:l])
+        except Exception as e:
+            log.error(f'Could not lookup descriptor from request: {repr(request)}')
             res = None
         return res
 

@@ -40,20 +40,20 @@ class USBQEngine:
         # Mangle
         pm.hook.usbq_host_mangle(pkt=pkt)
 
-        # Handle
-        if pkt.type == 0:  # Data
-            pm.hook.usbq_host_handle_data_pkt(pkt=pkt)
-        elif pkt.type == 1:  # ACK
-            pm.hook.usbq_host_handle_ack_pkt(pkt=pkt)
-        elif pkt.type == 2:  # Management
-            pm.hook.usbq_host_handle_management_pkt(pkt=pkt)
+        # # TODO: Handle REMOVE?
+        # if pkt.type == 0:  # Data
+        #     pm.hook.usbq_host_handle_data_pkt(pkt=pkt)
+        # elif pkt.type == 1:  # ACK
+        #     pm.hook.usbq_host_handle_ack_pkt(pkt=pkt)
+        # elif pkt.type == 2:  # Management
+        #     pm.hook.usbq_host_handle_management_pkt(pkt=pkt)
 
         # Encode
         send_data = pm.hook.usbq_host_encode(pkt=pkt)
 
         # Forward
         try:
-            pm.hook.usbq_send_device_packet(data=data)
+            pm.hook.usbq_send_device_packet(data=send_data)
         except USBQDeviceNotConnected:
             log.info('USB device not connected yet. Dropping packet from host.')
             raise

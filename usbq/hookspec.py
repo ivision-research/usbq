@@ -40,7 +40,8 @@ class USBQHookSpec:
     @hookspec(firstresult=True)
     def usbq_wait_for_packet(self):
         '''
-        Returns True if data is available from the USB host or device.
+        Returns True if data is available from the USB host or device or False
+        if no data is available.
 
         Plugin implementors such as PCAP replay should always
         return True.
@@ -55,7 +56,6 @@ class USBQHookSpec:
 
         :param pkt: Decoded protocol packet.
 
-        Returned value is ignored.
         '''
 
     #
@@ -65,7 +65,8 @@ class USBQHookSpec:
     @hookspec(firstresult=True)
     def usbq_device_has_packet(self):
         '''
-        Returns True if data is available from the USB device.
+        Returns True if data is available from the USB host or device or False
+        if no data is available.
         '''
 
     @hookspec(firstresult=True)
@@ -90,7 +91,7 @@ class USBQHookSpec:
         Return decoded raw data.
         '''
 
-    @hookspec(firstresult=True)
+    @hookspec
     def usbq_device_mangle(self, pkt):
         '''
         Perform arbitrary mangling of USB device packets.
@@ -117,7 +118,8 @@ class USBQHookSpec:
     @hookspec(firstresult=True)
     def usbq_host_has_packet(self):
         '''
-        Returns True if data is available from the USB host.
+        Returns True if data is available from the USB host or device or False
+        if no data is available.
         '''
 
     @hookspec(firstresult=True)
@@ -152,7 +154,7 @@ class USBQHookSpec:
         Return encoded packet to be sent to the USBQ driver.
         '''
 
-    @hookspec(firstresult=True)
+    @hookspec
     def usbq_host_mangle(self, pkt):
         '''
         Perform arbitrary mangling of USB host packets.
@@ -160,30 +162,6 @@ class USBQHookSpec:
         :param pkt: Decoded USBQ packet. pkt.content is the USB payload.
 
         Modify pkt in place. Returned value is ignored.
-        '''
-
-    @hookspec(firstresult=True)
-    def usbq_host_handle_data_pkt(self, pkt):
-        '''
-        Handle a USBQ data packet from the host.
-
-        :param pkt: Decoded packet.
-        '''
-
-    @hookspec(firstresult=True)
-    def usbq_host_handle_mgmt_pkt(self, pkt):
-        '''
-        Handle a USBQ management packet from the host.
-
-        :param pkt: Decoded packet.
-        '''
-
-    @hookspec(firstresult=True)
-    def usbq_host_handle_ack_pkt(self, pkt):
-        '''
-        Handle a USBQ ack packet from the host.
-
-        :param pkt: Decoded packet.
         '''
 
     #
@@ -199,7 +177,7 @@ class USBQHookSpec:
 
         :param host: If True then send a packet to the USB Host, otherwise USB Device.
 
-        Return True if the data was sent.
+        Return a non-None value if the data was sent.
         '''
 
     @hookspec(firstresult=True)
@@ -211,7 +189,7 @@ class USBQHookSpec:
 
         :param host: If True then send a packet to the USB Host, otherwise USB Device.
 
-        Return True if the data was sent.
+        Return a non-None value if the data was sent.
         '''
 
     #
@@ -221,5 +199,18 @@ class USBQHookSpec:
     @hookspec(firstresult=True)
     def usbq_device_tick(self):
         '''
-        Tick for performing device emulation.
+        Tick function for performing device emulation.
+
+        Return value is ignored but should not be None.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_handle_device_request(self, dev, content):
+        '''
+        Handle the endpoint request.
+
+        :param dev: USBDevice instance.
+        :param req: USBMessageRequest instance.
+
+        Return a non-None value if the request has been processed.
         '''

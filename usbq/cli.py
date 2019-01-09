@@ -54,11 +54,26 @@ def main(ctx, debug, trace):
             # Trace pluggy
             tracer = logging.getLogger('trace')
 
-            def dotrace(msg):
-                tracer.debug(msg.strip('\n'))
+            # def dotrace(msg):
+            #     tracer.debug(msg.strip('\n'))
 
-            pm.trace.root.setwriter(dotrace)
-            pm.enable_tracing()
+            # pm.trace.root.setwriter(dotrace)
+            # pm.enable_tracing()
+
+            def before(hook_name, hook_impls, kwargs):
+                arglst = [
+                    f'{key}={repr(value)}'
+                    for key, value in sorted(kwargs.items(), key=lambda v: v[0])
+                ]
+                argstr = ', '.join(arglst)
+                plst = ', '.join([p.plugin_name for p in reversed(hook_impls)])
+                tracer.debug(f'{hook_name}({argstr}) [{plst}]')
+
+            def after(outcome, hook_name, hook_impls, kwargs):
+                res = outcome.get_result()
+                tracer.debug(f'{hook_name} -> {repr(res)} [{type(res)}]')
+
+            pm.add_hookcall_monitoring(before, after)
 
     return 0
 
@@ -177,11 +192,17 @@ def mitm(ctx, disable_plugin, proxy_addr, proxy_port, listen_addr, listen_port, 
 @click.argument('CL:SC:PR')
 def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, **kwargs):
     cl, sc, pr = kwargs['cl:sc:pr'].split(':')
+    dehex = lambda v: int(v, base=16)
 
     enable_plugins(
         pm,
         standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
-        + [('device', {'dclass': cl, 'dsubclass': sc, 'dproto': pr})],
+        + [
+            (
+                'device',
+                {'dclass': dehex(cl), 'dsubclass': dehex(sc), 'dproto': dehex(pr)},
+            )
+        ],
     )
     USBQEngine().run()
 

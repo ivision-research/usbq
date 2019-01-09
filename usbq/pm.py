@@ -61,4 +61,4 @@ def enable_plugins(pm, pmlist, disabled=[]):
             else:
                 raise
 
-        pm.register(cls(**pdopts))
+        pm.register(cls(**pdopts), name=pdname)
