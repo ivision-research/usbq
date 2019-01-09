@@ -59,9 +59,10 @@ class USBQEngine:
             raise
 
     def run(self):
-        try:
-            log.info('Starting USB processing engine.')
-            while True:
+        log.info('Starting USB processing engine.')
+        exit_loop = False
+        while True:
+            try:
                 # Emulate devices
                 pm.hook.usbq_device_tick()
 
@@ -74,6 +75,11 @@ class USBQEngine:
                 while pm.hook.usbq_host_has_packet():
                     self._do_host_packet()
 
-        except KeyboardInterrupt:
-            log.debug('Control-C: User requested exit.')
-            pm.hook.usbq_teardown()
+                if exit_loop:
+                    break
+            except KeyboardInterrupt:
+                log.debug('Control-C: User requested exit.')
+                pm.hook.usbq_teardown()
+
+                # Take one more pass through the loop to send/recv packets
+                exit_loop = True

@@ -46,11 +46,17 @@ class USBDevice(StateMachine):
     disconnected = State('disconnected', initial=True)
     connected = State('connected')
     configured = State('configured')
+    terminated = State('terminated')
 
     # Valid state transitions
     connect = disconnected.to(connected)
     configure = connected.to(configured)
     disconnect = connected.to(disconnected) | configured.to(disconnected)
+    terminate = (
+        connected.to(terminated)
+        | configured.to(terminated)
+        | disconnected.to(terminated)
+    )
 
     _msgtypes = {ManagementMessage: 2, USBMessageResponse: 0}
 
@@ -138,6 +144,9 @@ class USBDevice(StateMachine):
     def on_configure(self):
         log.info(f'Device configuration set to {self._configuration}.')
 
+    def on_terminate(self):
+        self.on_disconnect()
+
     # Message handling
 
     @hookimpl
@@ -171,4 +180,4 @@ class USBDevice(StateMachine):
 
     @hookimpl
     def usbq_teardown(self):
-        self.disconnect()
+        self.terminate()
