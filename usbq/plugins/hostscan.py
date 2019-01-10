@@ -42,8 +42,6 @@ class USBHostScan(StateMachine):
 
     @hookimpl
     def usbq_device_tick(self):
-        log.debug(f'Hostscan: {self.current_state.name}')
-
         # Start test
         if self.is_idle and self.dev.is_disconnected:
             self.start()
@@ -143,8 +141,8 @@ class USBHostScan(StateMachine):
         return DeviceIdentity(descriptors=desc)
 
     def on_start(self):
-        log.info(f'Starting hostscan for X:X:X X:X')
-        # increment ID
+        log.info(f'Starting host USB scan.')
+        # TODO: increment device identity
         self.dev.connect()
         self._start_time = time.time()
 

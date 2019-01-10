@@ -43,5 +43,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.device',
             clsname='USBDevice',
         ),
+        'hexdump': USBQPluginDef(
+            name='hexdump',
+            desc='Display USBQ packet and hexdump of USB payload.',
+            mod='usbq.plugins.hexdump',
+            clsname='Hexdump',
+        ),
     }
 

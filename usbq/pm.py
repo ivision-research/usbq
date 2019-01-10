@@ -5,6 +5,7 @@ import logging
 from collections import ChainMap, OrderedDict
 
 from .hookspec import USBQ_EP, USBQHookSpec, USBQPluginDef
+from .exceptions import USBQInvocationError
 
 __all__ = ['AVAILABLE_PLUGINS', 'enable_plugins']
 
@@ -29,12 +30,15 @@ AVAILABLE_PLUGINS['usbq_hooks'] = USBQPluginDef(
 )
 
 
-def enable_plugins(pm, pmlist, disabled=[]):
-    for pdinfo in pmlist + [('usbq_hooks', {})]:
+def enable_plugins(pm, pmlist, disabled, enabled):
+    extra = [(pdname, {}) for pdname in enabled]
+    for pdinfo in pmlist + extra + [('usbq_hooks', {})]:
         pdname, pdopts = pdinfo
 
         if pdname not in AVAILABLE_PLUGINS:
-            raise ValueError(f'{pdname} is not a valid USBQ plugin.')
+            msg = f'{pdname} is not a valid USBQ plugin.'
+            log.critical(msg)
+            raise USBQInvocationError(msg)
 
         if pdname in disabled:
             log.info(f'Disabling plugin {pdname}.')

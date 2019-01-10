@@ -1,8 +1,12 @@
-__all__ = ['USBQException', 'USBQDeviceNotConnected']
+__all__ = ['USBQException', 'USBQInvocationError', 'USBQDeviceNotConnected']
 
 
 class USBQException(Exception):
     'Base of all USBQ exceptions'
+
+
+class USBQInvocationError(USBQException):
+    'Error invoking USBQ'
 
 
 class USBQDeviceNotConnected(USBQException):

@@ -8,7 +8,6 @@ from setuptools import setup, find_packages
 requirements = [
     'Click>=6.0',
     'scapy',
-    'hexdump',
     'pluggy',
     'attrs',
     'frozendict',
