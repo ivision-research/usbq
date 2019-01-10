@@ -170,40 +170,38 @@ def mitm(ctx, disable_plugin, proxy_addr, proxy_port, listen_addr, listen_port, 
     USBQEngine().run()
 
 
-# @main.command()
-# @click.pass_context
-# @add_options(_network_options)
-# @add_options(_pcap_options)
-# def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
-#     'Scan USB host for supported devices.'
+@main.command()
+@click.pass_context
+@add_options(_network_options)
+@add_options(_pcap_options)
+def hostscan(
+    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, disable_plugin
+):
+    'Scan USB host for supported devices.'
 
-#     enable_plugins(
-#         pm,
-#         standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap)
-#         + [('hostscan', {})],
-#     )
-#     USBQEngine().run()
+    enable_plugins(
+        pm,
+        standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
+        + [('device', {}), ('hostscan', {})],
+    )
+    USBQEngine().run()
 
 
 @main.command()
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-@click.argument('CL:SC:PR')
-def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, **kwargs):
-    cl, sc, pr = kwargs['cl:sc:pr'].split(':')
-    dehex = lambda v: int(v, base=16)
+def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, disable_plugin):
+    'Emulate a USB device.'
 
     enable_plugins(
         pm,
         standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
-        + [
-            (
-                'device',
-                {'dclass': dehex(cl), 'dsubclass': dehex(sc), 'dproto': dehex(pr)},
-            )
-        ],
+        + [('device', {})],
+        disabled=disable_plugin,
     )
+    device = pm.hook.usbq_get_device()
+    device.connect()
     USBQEngine().run()
 
 

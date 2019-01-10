@@ -1,7 +1,6 @@
 import attr
 import logging
 
-from scapy.all import raw
 from statemachine import StateMachine, State
 
 from ..hookspec import hookimpl
@@ -30,18 +29,6 @@ log = logging.getLogger(__name__)
 class USBDevice(StateMachine):
     'Plugin for a stubbed out emulated USB device.'
 
-    #: USB device class, hex
-    _dclass = attr.ib(converter=int)
-
-    #: USB device class
-    _dsubclass = attr.ib(converter=int)
-
-    #: USB device class
-    _dproto = attr.ib(converter=int)
-
-    #: USB Device Identity
-    _ident = attr.ib(default=attr.Factory(DeviceIdentity))
-
     # States
     disconnected = State('disconnected', initial=True)
     connected = State('connected')
@@ -50,7 +37,7 @@ class USBDevice(StateMachine):
 
     # Valid state transitions
     connect = disconnected.to(connected)
-    configure = connected.to(configured)
+    configure = connected.to(configured) | configured.to(configured)
     disconnect = connected.to(disconnected) | configured.to(disconnected)
     terminate = (
         connected.to(terminated)
@@ -66,6 +53,7 @@ class USBDevice(StateMachine):
         self._pkt_out = []
         self._pkt_in = []
         self._configuration = None
+        self._identity = None
 
     # Proxy hooks
 
@@ -100,9 +88,6 @@ class USBDevice(StateMachine):
 
     @hookimpl
     def usbq_device_tick(self):
-        if self.is_disconnected:
-            self.connect()
-
         while len(self._pkt_in) > 0:
             msg = self._pkt_in.pop(0)
 
@@ -111,19 +96,28 @@ class USBDevice(StateMachine):
             else:
                 raise NotImplementedError(f'Don\'t know how to handle {type(msg)} yet.')
 
-        return True
-
     def _send_to_host(self, content):
         msgtype = self._msgtypes[type(content)]
         self._pkt_out.append(USBMessageDevice(type=msgtype, content=content))
 
+    # Device ID
+    @hookimpl
+    def usbq_device_identity(self):
+        # Return generic device ID
+        return DeviceIdentity()
+
     # State handlers
+
+    @hookimpl
+    def usbq_get_device(self):
+        return self
 
     def on_connect(self):
         'Connect to the USB Host by queuing a new identity packet.'
 
         # fetch device identity of the emulated device
         log.info('Connecting emulated USB device.')
+        self._ident = pm.hook.usbq_device_identity()
         self._send_to_host(
             ManagementMessage(
                 management_type=NEW_DEVICE,
@@ -150,7 +144,7 @@ class USBDevice(StateMachine):
     # Message handling
 
     @hookimpl
-    def usbq_handle_device_request(self, dev, content):
+    def usbq_handle_device_request(self, content):
         'Process EP0 CONTROL requests for descriptors'
 
         ep = content.ep

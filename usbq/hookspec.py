@@ -197,19 +197,29 @@ class USBQHookSpec:
     #
 
     @hookspec(firstresult=True)
+    def usbq_device_identity(self):
+        '''
+        Return a DeviceIdentity instance for the device to emulate.
+        '''
+
+    @hookspec(firstresult=True)
+    def usbq_get_device(self):
+        '''
+        Return a the emulated device instance.
+        '''
+
     def usbq_device_tick(self):
         '''
         Tick function for performing device emulation.
 
-        Return value is ignored but should not be None.
+        Return value is ignored.
         '''
 
     @hookspec(firstresult=True)
-    def usbq_handle_device_request(self, dev, content):
+    def usbq_handle_device_request(self, content):
         '''
         Handle the endpoint request.
 
-        :param dev: USBDevice instance.
         :param content: USBMessageRequest content.
 
         Return a non-None value if the request has been processed.

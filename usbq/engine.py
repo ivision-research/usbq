@@ -40,14 +40,6 @@ class USBQEngine:
         # Mangle
         pm.hook.usbq_host_mangle(pkt=pkt)
 
-        # # TODO: Handle REMOVE?
-        # if pkt.type == 0:  # Data
-        #     pm.hook.usbq_host_handle_data_pkt(pkt=pkt)
-        # elif pkt.type == 1:  # ACK
-        #     pm.hook.usbq_host_handle_ack_pkt(pkt=pkt)
-        # elif pkt.type == 2:  # Management
-        #     pm.hook.usbq_host_handle_management_pkt(pkt=pkt)
-
         # Encode
         send_data = pm.hook.usbq_host_encode(pkt=pkt)
 
@@ -64,7 +56,8 @@ class USBQEngine:
         while True:
             try:
                 # Emulate devices
-                pm.hook.usbq_device_tick()
+                if hasattr(pm.hook, 'usbq_device_tick'):
+                    pm.hook.usbq_device_tick()
 
                 # Used to prevent busy loop
                 pm.hook.usbq_wait_for_packet()
