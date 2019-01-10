@@ -55,9 +55,9 @@ class USBQEngine:
         exit_loop = False
         while True:
             try:
-                # Emulate devices
-                if hasattr(pm.hook, 'usbq_device_tick'):
-                    pm.hook.usbq_device_tick()
+                # Let plugins do work
+                if hasattr(pm.hook, 'usbq_tick'):
+                    pm.hook.usbq_tick()
 
                 # Used to prevent busy loop
                 pm.hook.usbq_wait_for_packet()

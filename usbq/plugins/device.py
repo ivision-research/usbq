@@ -87,7 +87,7 @@ class USBDevice(StateMachine):
         return pkt
 
     @hookimpl
-    def usbq_device_tick(self):
+    def usbq_tick(self):
         while len(self._pkt_in) > 0:
             msg = self._pkt_in.pop(0)
 
@@ -108,12 +108,13 @@ class USBDevice(StateMachine):
 
     # State handlers
 
-    @hookimpl
-    def usbq_get_device(self):
-        return self
-
     def on_connect(self):
         'Connect to the USB Host by queuing a new identity packet.'
+
+        # Start the proxy
+        proxy = pm.get_plugin('proxy')
+        if not proxy.is_running:
+            proxy.start()
 
         # fetch device identity of the emulated device
         log.info('Connecting emulated USB device.')

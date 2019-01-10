@@ -37,7 +37,7 @@ LOG_FIELD_STYLES = {
     '--enable-plugin', type=str, multiple=True, default=[], help='Enable plugin'
 )
 @click.pass_context
-def main(ctx, debug, trace, dump, **kwargs):
+def main(ctx, debug, trace, **kwargs):
     '''USBiquitous: USB Intrustion Toolkit'''
 
     ctx.ensure_object(dict)
@@ -142,8 +142,10 @@ def add_options(options):
     return _add_options
 
 
-def standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap):
-    return [
+def standard_plugin_options(
+    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+):
+    res = [
         (
             'proxy',
             {
@@ -157,6 +159,11 @@ def standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pc
         ('decode', {}),
         ('encode', {}),
     ]
+
+    if ctx.obj['params']['dump']:
+        res.append(('hexdump', {}))
+
+    return res
 
 
 #
@@ -173,10 +180,14 @@ def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 
     enable_plugins(
         pm,
-        standard_plugin_options(proxy_addr, proxy_port, listen_addr, listen_port, pcap),
+        standard_plugin_options(
+            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+        ),
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
+    proxy = pm.get_plugin('proxy')
+    proxy.start()
     USBQEngine().run()
 
 
@@ -189,8 +200,27 @@ def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 
     enable_plugins(
         pm,
-        standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
         + [('device', {}), ('hostscan', {})],
+        disabled=ctx.obj['params']['disable_plugin'],
+        enabled=ctx.obj['params']['enable_plugin'],
+    )
+    USBQEngine().run()
+
+
+@main.command()
+@click.pass_context
+@add_options(_network_options)
+@add_options(_pcap_options)
+def hostfuzz(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+    'Proxy USB device and mutate packets to fuzz the host.'
+
+    enable_plugins(
+        pm,
+        standard_plugin_options(
+            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+        )
+        + [('hostfuzz', {})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
@@ -206,12 +236,12 @@ def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 
     enable_plugins(
         pm,
-        standard_plugin_options(proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
         + [('device', {})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
-    device = pm.hook.usbq_get_device()
+    device = pm.get_plugin('device')
     device.connect()
     USBQEngine().run()
 

@@ -4,7 +4,16 @@ import socket
 import select
 
 from attr.converters import optional
+from statemachine import StateMachine, State
 
+from ..usbmitm_proto import (
+    USBMessageDevice,
+    USBMessageHost,
+    ManagementReset,
+    ManagementMessage,
+    ManagementReload,
+    RESET,
+)
 from ..hookspec import hookimpl
 from ..exceptions import USBQDeviceNotConnected
 from ..pm import pm
@@ -14,7 +23,7 @@ TIMEOUT = ([], [], [])
 
 
 @attr.s(cmp=False)
-class ProxyPlugin:
+class ProxyPlugin(StateMachine):
     'Proxy USB communications using a ubq_core enabled hardware device.'
 
     #: Address to listen to for USB device.
@@ -29,9 +38,20 @@ class ProxyPlugin:
     #: Port to send to for USB host.
     _host_port = attr.ib(converter=optional(int), default=None)
 
+    # States
+    idle = State('idle', initial=True)
+    running = State('running')
+
+    # Valid state transitions
+    start = idle.to(running)
+    reset = running.to(idle)
+    reload = idle.to(running)
+
     EMPTY = []
 
     def __attrs_post_init__(self):
+        # Workaround to mesh attr and StateMachine
+        super().__init__()
         self._socks = []
         self._proxy_host = True
         self._proxy_device = True
@@ -107,3 +127,37 @@ class ProxyPlugin:
     def usbq_send_device_packet(self, data):
         if self._device_dst is not None:
             return self._device_sock.sendto(data, self._device_dst) > 0
+
+    def on_start(self):
+        log.info('Starting proxy.')
+
+    def _send_host_mgmt(self, pkt):
+        data = pm.hook.usbq_host_encode(pkt=USBMessageDevice(type=2, content=pkt))
+        self.usbq_send_host_packet(data)
+
+    def _send_device_mgmt(self, pkt):
+        data = pm.hook.usbq_device_encode(pkt=USBMessageHost(type=2, content=pkt))
+        self.usbq_send_host_packet(data)
+
+    def on_reset(self):
+        log.info('Reset device.')
+
+        pkt = self._send_device_mgmt(
+            ManagementMessage(
+                management_type=RESET, management_content=ManagementReset()
+            )
+        )
+
+    def on_reload(self):
+        log.info('Reload device.')
+
+        self._send_device_mgmt(
+            ManagementMessage(
+                management_type=RESET, management_content=ManagementReload()
+            )
+        )
+
+    @hookimpl
+    def usbq_teardown(self):
+        self.reset()
+

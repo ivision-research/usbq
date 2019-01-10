@@ -202,13 +202,7 @@ class USBQHookSpec:
         Return a DeviceIdentity instance for the device to emulate.
         '''
 
-    @hookspec(firstresult=True)
-    def usbq_get_device(self):
-        '''
-        Return a the emulated device instance.
-        '''
-
-    def usbq_device_tick(self):
+    def usbq_tick(self):
         '''
         Tick function for performing device emulation.
 

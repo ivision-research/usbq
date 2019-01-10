@@ -49,5 +49,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.hexdump',
             clsname='Hexdump',
         ),
+        'hostfuzz': USBQPluginDef(
+            name='hostfuzz',
+            desc='Fuzz device packets headed to the host.',
+            mod='usbq.plugins.hostfuzz',
+            clsname='Hostfuzz',
+        ),
     }
 

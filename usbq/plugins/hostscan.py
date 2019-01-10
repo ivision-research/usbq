@@ -37,11 +37,11 @@ class USBHostScan(StateMachine):
     @property
     def dev(self):
         if self._dev is None:
-            self._dev = pm.hook.usbq_get_device()
+            self._dev = pm.get_plugin('device')
         return self._dev
 
     @hookimpl
-    def usbq_device_tick(self):
+    def usbq_tick(self):
         # Start test
         if self.is_idle and self.dev.is_disconnected:
             self.start()
