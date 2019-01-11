@@ -62,10 +62,10 @@ class USBQEngine:
                 # Used to prevent busy loop
                 pm.hook.usbq_wait_for_packet()
 
-                while pm.hook.usbq_device_has_packet():
+                while any(pm.hook.usbq_device_has_packet()):
                     self._do_device_packet()
 
-                while pm.hook.usbq_host_has_packet():
+                while any(pm.hook.usbq_host_has_packet()):
                     self._do_host_packet()
 
                 if exit_loop:

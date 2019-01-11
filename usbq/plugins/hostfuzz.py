@@ -32,11 +32,15 @@ class Hostfuzz(StateMachine):
         # Workaround to mesh attr and StateMachine
         super().__init__()
         self.proxy = pm.get_plugin('proxy')
+        self.device = pm.get_plugin('device')
 
     @hookimpl
     def usbq_tick(self):
         if self.is_idle:
             self.start()
+
+        if time.time() - self._start_time > self.delay:
+            self.timeout()
 
     def on_start(self):
         log.info(f'Starting host fuzzing test.')
@@ -44,9 +48,10 @@ class Hostfuzz(StateMachine):
         if self.proxy.is_idle:
             self.proxy.start()
 
+        self.device.connect()
+
         self._start_time = time.time()
 
     def on_timeout(self):
-        if self.proxy.is_running:
-            self.proxy.reset()
-            self.proxy.reload()
+        if self.device.connected:
+            self.device.disconnect()

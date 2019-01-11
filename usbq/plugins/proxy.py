@@ -97,13 +97,13 @@ class ProxyPlugin(StateMachine):
     @hookimpl
     def usbq_wait_for_packet(self):
         # Poll for data from non-proxy source
-        queued_data = False
+        queued_data = []
         if not self._proxy_host:
-            queued_data = pm.hook.usbq_host_has_packet()
+            queued_data += pm.hook.usbq_host_has_packet()
         if not self._proxy_device:
-            queued_data = queued_data or pm.hook.usbq_device_has_packet()
+            queued_data += pm.hook.usbq_device_has_packet()
 
-        if queued_data:
+        if any(queued_data):
             return True
         else:
             # Wait

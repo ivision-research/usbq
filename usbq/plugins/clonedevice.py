@@ -20,7 +20,7 @@ from ..usbmitm_proto import (
 )
 from ..model import DeviceIdentity
 from ..dissect.defs import *
-from ..dissect.usb import GetDescriptor, SetConfiguration
+from ..dissect.usb import GetDescriptor, SetConfiguration, ConfigurationDescriptor
 
 __all__ = ['USBDevice']
 
@@ -39,11 +39,14 @@ class CloneDevice(StateMachine):
 
     # Valid state transitions
     newdevice = idle.to(observing)
-    reset = observing.to(idle)
+    reset = observing.to(idle) | idle.to(idle)
 
     def __attrs_post_init__(self):
         # Workaround to mesh attr and StateMachine
         super().__init__()
+
+    def on_idle(self):
+        self._desc = []
 
     def on_newdevice(self, newdev):
         log.info('New device detected.')
@@ -51,12 +54,15 @@ class CloneDevice(StateMachine):
 
     def on_reset(self):
         log.info('Device reset.')
-        ident = DeviceIdentity(self._desc)
 
-        with Path(self.dest).open('wb') as f:
-            pickle.dump(ident, f)
-        log.debug(ident)
-        log.info(f'Device definition pickled to {self.dest}.')
+        # Persist captured DeviceIdentity
+        if len(self._desc) > 0:
+            ident = DeviceIdentity(self._desc)
+
+            with Path(self.dest).open('wb') as f:
+                pickle.dump(ident, f)
+            log.debug(ident)
+            log.info(f'Device definition pickled to {self.dest}.')
 
     @hookimpl
     def usbq_log_pkt(self, pkt):

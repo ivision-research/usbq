@@ -72,6 +72,11 @@ def to_descriptor_dict(v):
         res = v
     else:
         res[v.bDescriptorType].append(v)
+
+    # Put the _largest_ descriptor in the first index
+    for dtype in [DEVICE_DESCRIPTOR, CONFIGURATION_DESCRIPTOR]:
+        res[dtype] = sorted(res[dtype], key=lambda d: -len(d))
+
     return res
 
 
@@ -116,11 +121,10 @@ class DeviceIdentity:
                     res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
                 else:
                     l = request.wLength
-                    res = Descriptor(raw(self[request.bDescriptorType])[:l])
+                    res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
+            return res
         except Exception as e:
-            log.error(f'Could not lookup descriptor from request: {repr(request)}')
-            res = None
-        return res
+            return
 
     # Device Descriptor access
     @property

@@ -3,6 +3,7 @@
 import sys
 import click
 import logging
+import pickle
 
 from coloredlogs import ColoredFormatter
 
@@ -26,6 +27,12 @@ LOG_FIELD_STYLES = {
 
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, default=False, help='Enable usbq debug logging.')
+@click.option(
+    '--logfile',
+    type=click.Path(writable=True, dir_okay=False),
+    default='debug.log',
+    help='Logfile for --debug output',
+)
 @click.option('--trace', is_flag=True, default=False, help='Trace plugins.')
 @click.option(
     '--dump', is_flag=True, default=False, help='Dump USBQ packets to console.'
@@ -37,7 +44,7 @@ LOG_FIELD_STYLES = {
     '--enable-plugin', type=str, multiple=True, default=[], help='Enable plugin'
 )
 @click.pass_context
-def main(ctx, debug, trace, **kwargs):
+def main(ctx, debug, trace, logfile, **kwargs):
     '''USBiquitous: USB Intrustion Toolkit'''
 
     ctx.ensure_object(dict)
@@ -58,9 +65,13 @@ def main(ctx, debug, trace, **kwargs):
             # Colors and formats
             ch = logging.StreamHandler(sys.stdout)
             ch.setLevel(logging.DEBUG)
+            fh = logging.FileHandler(logfile, 'w')
+            fh.setLevel(logging.DEBUG)
             formatter = ColoredFormatter(fmt=FORMAT, field_styles=LOG_FIELD_STYLES)
             ch.setFormatter(formatter)
+            fh.setFormatter(logging.Formatter(FORMAT))
             root.addHandler(ch)
+            root.addHandler(fh)
 
         if trace:
             # Trace pluggy
@@ -131,6 +142,22 @@ _pcap_options = [
         help='PCAP file to record USB traffic.',
     )
 ]
+
+_identity_options = [
+    click.option(
+        '--device-identity',
+        default=None,
+        type=click.File('rb'),
+        help='File to load pickled instance of a USB device.',
+    )
+]
+
+
+def _load_ident(fn):
+    if fn is not None:
+        return pickle.load(fn)
+    else:
+        return None
 
 
 def add_options(options):
@@ -212,15 +239,17 @@ def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-def hostfuzz(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+@add_options(_identity_options)
+def hostfuzz(
+    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, device_identity
+):
     'Proxy USB device and mutate packets to fuzz the host.'
 
+    ident = _load_ident(device_identity)
     enable_plugins(
         pm,
-        standard_plugin_options(
-            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
-        )
-        + [('hostfuzz', {})],
+        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        + [('device', {'ident': ident}), ('hostfuzz', {})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
@@ -231,15 +260,21 @@ def hostfuzz(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-def clonedevice(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+@click.option(
+    '--device-identity',
+    default='device.id',
+    type=click.Path(writable=True, dir_okay=False),
+    help='File to save pickled instance of a USB device.',
+)
+def clonedevice(
+    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, device_identity
+):
     'Create a USB device model from proxied communications.'
 
     enable_plugins(
         pm,
-        standard_plugin_options(
-            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
-        )
-        + [('clonedevice', {})],
+        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        + [('clonedevice', {'dest': device_identity})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
@@ -253,13 +288,17 @@ def clonedevice(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
-def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+@add_options(_identity_options)
+def device(
+    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, device_identity
+):
     'Emulate a USB device.'
 
+    ident = _load_ident(device_identity)
     enable_plugins(
         pm,
         standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
-        + [('device', {})],
+        + [('device', {'ident': ident})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )

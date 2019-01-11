@@ -1,6 +1,7 @@
 import attr
 import logging
 
+from attr.validators import optional, instance_of
 from statemachine import StateMachine, State
 
 from ..hookspec import hookimpl
@@ -29,6 +30,11 @@ log = logging.getLogger(__name__)
 class USBDevice(StateMachine):
     'Plugin for a stubbed out emulated USB device.'
 
+    _ident = attr.ib(
+        validator=optional(instance_of(DeviceIdentity)),
+        default=attr.Factory(DeviceIdentity),
+    )
+
     # States
     disconnected = State('disconnected', initial=True)
     connected = State('connected')
@@ -53,7 +59,6 @@ class USBDevice(StateMachine):
         self._pkt_out = []
         self._pkt_in = []
         self._configuration = None
-        self._identity = None
 
     # Proxy hooks
 
@@ -91,10 +96,14 @@ class USBDevice(StateMachine):
         while len(self._pkt_in) > 0:
             msg = self._pkt_in.pop(0)
 
-            if type(msg.content) == USBMessageRequest:
+            assert type(msg.content) == USBMessageRequest
+            if (
                 pm.hook.usbq_handle_device_request(dev=self, content=msg.content)
-            else:
-                raise NotImplementedError(f'Don\'t know how to handle {type(msg)} yet.')
+                is None
+            ):
+                log.error(
+                    f'Nothing emulated device response to USB request: {repr(msg)}'
+                )
 
     def _send_to_host(self, content):
         msgtype = self._msgtypes[type(content)]
@@ -104,7 +113,7 @@ class USBDevice(StateMachine):
     @hookimpl
     def usbq_device_identity(self):
         # Return generic device ID
-        return DeviceIdentity()
+        return self._ident
 
     # State handlers
 
@@ -118,7 +127,10 @@ class USBDevice(StateMachine):
 
         # fetch device identity of the emulated device
         log.info('Connecting emulated USB device.')
-        self._ident = pm.hook.usbq_device_identity()
+
+        if self._ident is None:
+            self._ident = pm.hook.usbq_device_identity()
+
         self._send_to_host(
             ManagementMessage(
                 management_type=NEW_DEVICE,

@@ -62,10 +62,10 @@ class USBQHookSpec:
     #  DEVICE: Hooks for USB packets sent from the device to the host
     #
 
-    @hookspec(firstresult=True)
+    @hookspec
     def usbq_device_has_packet(self):
         '''
-        Returns True if data is available from the USB host or device or False
+        Return True if data is available from the USB host or device or False
         if no data is available.
         '''
 
@@ -115,10 +115,10 @@ class USBQHookSpec:
     #  HOST: Hooks for data sent from the USB Host to the device
     #
 
-    @hookspec(firstresult=True)
+    @hookspec
     def usbq_host_has_packet(self):
         '''
-        Returns True if data is available from the USB host or device or False
+        Return True if data is available from the USB host or device or False
         if no data is available.
         '''
 

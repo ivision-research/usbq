@@ -15,7 +15,7 @@ class Hexdump:
     @hookimpl
     def usbq_log_pkt(self, pkt):
         # Dump to console
-        print(repr(pkt))
+        log.info(repr(pkt))
 
         if hasattr(pkt, 'content'):
             hexdump(pkt.content)
