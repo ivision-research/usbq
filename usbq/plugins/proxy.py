@@ -44,7 +44,7 @@ class ProxyPlugin(StateMachine):
 
     # Valid state transitions
     start = idle.to(running)
-    reset = running.to(idle)
+    reset = running.to(idle) | idle.to(idle)
     reload = idle.to(running)
 
     EMPTY = []

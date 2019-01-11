@@ -55,5 +55,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.hostfuzz',
             clsname='Hostfuzz',
         ),
+        'clonedevice': USBQPluginDef(
+            name='clonedevice',
+            desc='Observe device behavior to clone device configuration and descriptors.',
+            mod='usbq.plugins.clonedevice',
+            clsname='CloneDevice',
+        ),
     }
 

@@ -1,6 +1,8 @@
 import pluggy
 import importlib
 import logging
+import os.path
+import sys
 
 from collections import ChainMap, OrderedDict
 
@@ -10,6 +12,9 @@ from .exceptions import USBQInvocationError
 __all__ = ['AVAILABLE_PLUGINS', 'enable_plugins']
 
 log = logging.getLogger(__name__)
+
+# Search current directory. Needed for usbq_hooks.py
+sys.path.insert(0, os.path.abspath('.'))
 
 # Load the plugin manager and list available plugins
 pm = pluggy.PluginManager(USBQ_EP)

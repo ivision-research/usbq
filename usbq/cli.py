@@ -231,6 +231,28 @@ def hostfuzz(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 @click.pass_context
 @add_options(_network_options)
 @add_options(_pcap_options)
+def clonedevice(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
+    'Create a USB device model from proxied communications.'
+
+    enable_plugins(
+        pm,
+        standard_plugin_options(
+            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+        )
+        + [('clonedevice', {})],
+        disabled=ctx.obj['params']['disable_plugin'],
+        enabled=ctx.obj['params']['enable_plugin'],
+    )
+    clone = pm.get_plugin('clonedevice')
+    proxy = pm.get_plugin('proxy')
+    proxy.start()
+    USBQEngine().run()
+
+
+@main.command()
+@click.pass_context
+@add_options(_network_options)
+@add_options(_pcap_options)
 def device(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
     'Emulate a USB device.'
 

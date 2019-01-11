@@ -88,6 +88,14 @@ class DeviceIdentity:
         conf = ConfigurationDescriptor(descriptors=interface.descriptors)
         return cls([conf], *args, **kargs)
 
+    @classmethod
+    def from_new_device(cls, newdev):
+        'Create an identity from a NEW_DEVICE management message.'
+        res = cls([])
+        res.device = newdev.device
+        res.configuration = newdev.configuration
+        return res
+
     def __getitem__(self, i):
         if i in self.descriptors:
             return self.descriptors[i]
