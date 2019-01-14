@@ -92,7 +92,7 @@ class USBQHookSpec:
         '''
 
     @hookspec
-    def usbq_device_mangle(self, pkt):
+    def usbq_device_modify(self, pkt):
         '''
         Perform arbitrary mangling of USB device packets.
 
@@ -155,7 +155,7 @@ class USBQHookSpec:
         '''
 
     @hookspec
-    def usbq_host_mangle(self, pkt):
+    def usbq_host_modify(self, pkt):
         '''
         Perform arbitrary mangling of USB host packets.
 
