@@ -45,17 +45,15 @@ class CloneDevice(StateMachine):
         # Workaround to mesh attr and StateMachine
         super().__init__()
 
-    def on_idle(self):
-        self._desc = []
-
     def on_newdevice(self, newdev):
         log.info('New device detected.')
         self._desc = []
 
     def on_reset(self):
-        log.info('Device reset.')
-
         # Persist captured DeviceIdentity
+        if not hasattr(self, '_desc'):
+            return
+
         if len(self._desc) > 0:
             ident = DeviceIdentity(self._desc)
 
@@ -73,6 +71,7 @@ class CloneDevice(StateMachine):
             if pkt.content.management_type == NEW_DEVICE:
                 self.newdevice(pkt.content.management_content)
             elif pkt.content.management_type == RESET:
+                log.info('Device reset.')
                 self.reset()
         elif type(pkt.content) == USBMessageResponse:
             req = pkt.content.request
@@ -80,3 +79,7 @@ class CloneDevice(StateMachine):
             if type(req) == GetDescriptor:
                 log.info(f'Added descriptor: {repr(res)}')
                 self._desc.append(res)
+
+    @hookimpl
+    def usbq_teardown(self):
+        self.reset()

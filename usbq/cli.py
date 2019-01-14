@@ -273,7 +273,9 @@ def clonedevice(
 
     enable_plugins(
         pm,
-        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(
+            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+        )
         + [('clonedevice', {'dest': device_identity})],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
