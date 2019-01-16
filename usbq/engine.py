@@ -71,7 +71,7 @@ class USBQEngine:
                 if exit_loop:
                     break
             except KeyboardInterrupt:
-                log.debug('Control-C: User requested exit.')
+                log.critical('Control-C: User requested exit.')
                 pm.hook.usbq_teardown()
 
                 # Take one more pass through the loop to send/recv packets

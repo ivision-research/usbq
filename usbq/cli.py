@@ -25,6 +25,48 @@ LOG_FIELD_STYLES = {
 }
 
 
+def _setup_logging(logfile, debug):
+    if debug:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+
+    # Turn on logging
+    root = logging.getLogger()
+    root.setLevel(level)
+
+    # Colors and formats
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(level)
+    fh = logging.FileHandler(logfile, 'w')
+    fh.setLevel(level)
+    formatter = ColoredFormatter(fmt=FORMAT, field_styles=LOG_FIELD_STYLES)
+    ch.setFormatter(formatter)
+    fh.setFormatter(logging.Formatter(FORMAT))
+    root.addHandler(ch)
+    root.addHandler(fh)
+
+
+def _enable_tracing():
+    # Trace pluggy
+    tracer = logging.getLogger('trace')
+
+    def before(hook_name, hook_impls, kwargs):
+        arglst = [
+            f'{key}={repr(value)}'
+            for key, value in sorted(kwargs.items(), key=lambda v: v[0])
+        ]
+        argstr = ', '.join(arglst)
+        plst = ', '.join([p.plugin_name for p in reversed(hook_impls)])
+        tracer.debug(f'{hook_name}({argstr}) [{plst}]')
+
+    def after(outcome, hook_name, hook_impls, kwargs):
+        res = outcome.get_result()
+        tracer.debug(f'{hook_name} -> {repr(res)} [{type(res)}]')
+
+    pm.add_hookcall_monitoring(before, after)
+
+
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, default=False, help='Enable usbq debug logging.')
 @click.option(
@@ -57,46 +99,10 @@ def main(ctx, debug, trace, logfile, **kwargs):
         for pd in sorted(AVAILABLE_PLUGINS.values(), key=lambda pd: pd.name):
             click.echo(f'- {pd.name}: {pd.desc}')
     else:
-        if debug:
-            # Turn on logging
-            root = logging.getLogger()
-            root.setLevel(logging.DEBUG)
-
-            # Colors and formats
-            ch = logging.StreamHandler(sys.stdout)
-            ch.setLevel(logging.DEBUG)
-            fh = logging.FileHandler(logfile, 'w')
-            fh.setLevel(logging.DEBUG)
-            formatter = ColoredFormatter(fmt=FORMAT, field_styles=LOG_FIELD_STYLES)
-            ch.setFormatter(formatter)
-            fh.setFormatter(logging.Formatter(FORMAT))
-            root.addHandler(ch)
-            root.addHandler(fh)
+        _setup_logging(logfile, debug)
 
         if trace:
-            # Trace pluggy
-            tracer = logging.getLogger('trace')
-
-            # def dotrace(msg):
-            #     tracer.debug(msg.strip('\n'))
-
-            # pm.trace.root.setwriter(dotrace)
-            # pm.enable_tracing()
-
-            def before(hook_name, hook_impls, kwargs):
-                arglst = [
-                    f'{key}={repr(value)}'
-                    for key, value in sorted(kwargs.items(), key=lambda v: v[0])
-                ]
-                argstr = ', '.join(arglst)
-                plst = ', '.join([p.plugin_name for p in reversed(hook_impls)])
-                tracer.debug(f'{hook_name}({argstr}) [{plst}]')
-
-            def after(outcome, hook_name, hook_impls, kwargs):
-                res = outcome.get_result()
-                tracer.debug(f'{hook_name} -> {repr(res)} [{type(res)}]')
-
-            pm.add_hookcall_monitoring(before, after)
+            _enable_tracing()
 
     return 0
 
