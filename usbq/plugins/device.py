@@ -183,7 +183,9 @@ class USBDevice(StateMachine):
         # Set Configuration
         elif req.bRequest == 9:
             self._configuration = req.bConfigurationValue
-            self.configure()
+
+            if self.is_connected:
+                self.configure()
 
     @hookimpl
     def usbq_teardown(self):

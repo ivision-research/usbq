@@ -54,7 +54,10 @@ def enable_plugins(pm, pmlist, disabled, enabled):
         try:
             mod = importlib.import_module(pd.mod)
             cls = getattr(mod, pd.clsname)
-            log.debug(f'Loaded {pd.name} plugin from {pd.mod}:{pd.clsname}')
+            pm.register(cls(**pdopts), name=pdname)
+            log.debug(
+                f'Loaded {pd.name} plugin from {pd.mod}:{pd.clsname} with kwargs {pdopts}'
+            )
         except ModuleNotFoundError:
             if pd.optional:
                 log.info(
@@ -70,4 +73,3 @@ def enable_plugins(pm, pmlist, disabled, enabled):
             else:
                 raise
 
-        pm.register(cls(**pdopts), name=pdname)

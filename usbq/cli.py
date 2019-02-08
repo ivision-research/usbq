@@ -161,7 +161,9 @@ _identity_options = [
 
 def _load_ident(fn):
     if fn is not None:
-        return pickle.load(fn)
+        d = pickle.load(fn)
+        log.debug(f'Loaded device ID: {d}')
+        return d
     else:
         return None
 
@@ -303,10 +305,16 @@ def device(
     'Emulate a USB device.'
 
     ident = _load_ident(device_identity)
+
+    if ident is not None:
+        kwargs = {'ident': ident}
+    else:
+        kwargs = {}
+
     enable_plugins(
         pm,
         standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
-        + [('device', {'ident': ident})],
+        + [('device', kwargs)],
         disabled=ctx.obj['params']['disable_plugin'],
         enabled=ctx.obj['params']['enable_plugin'],
     )
