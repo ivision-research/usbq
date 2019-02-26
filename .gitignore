@@ -101,3 +101,5 @@ ENV/
 # mypy
 .mypy_cache/
 test_results/
+pip-wheel-metadata/
+*.pcap

@@ -61,5 +61,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.clonedevice',
             clsname='CloneDevice',
         ),
+        'reload': USBQPluginDef(
+            name='reload',
+            desc='Monitor usbq_hooks.py file and reload if changed.',
+            mod='usbq.plugins.reload',
+            clsname='ReloadUSBQHooks',
+        ),
     }
 

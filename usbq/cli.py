@@ -11,6 +11,7 @@ from . import __version__
 from .pm import pm, AVAILABLE_PLUGINS, enable_plugins
 from .engine import USBQEngine
 from .exceptions import USBQException
+from .opts import *
 
 __all__ = []
 log = logging.getLogger(__name__)
@@ -90,7 +91,9 @@ def main(ctx, debug, trace, logfile, **kwargs):
     '''USBiquitous: USB Intrustion Toolkit'''
 
     ctx.ensure_object(dict)
-    ctx.obj['params'] = ctx.params
+    ctx.obj['dump'] = ctx.params['dump']
+    ctx.obj['enable_plugin'] = ctx.params['enable_plugin']
+    ctx.obj['disable_plugin'] = ctx.params['disable_plugin']
 
     if ctx.invoked_subcommand is None:
         click.echo(f'usbq version {__version__}\n')
@@ -107,100 +110,6 @@ def main(ctx, debug, trace, logfile, **kwargs):
     return 0
 
 
-# Shared options
-
-_network_options = [
-    click.option(
-        '--proxy-addr',
-        default='127.0.0.1',
-        type=str,
-        help='IP address of the USB MITM proxy hardware.',
-        envvar='USBQ_PROXY_ADDR',
-    ),
-    click.option(
-        '--proxy-port',
-        default=64241,
-        type=int,
-        help='Port number of the USB MITM proxy hardware.',
-        envvar='USBQ_PROXY_PORT',
-    ),
-    click.option(
-        '--listen-addr',
-        default='0.0.0.0',
-        type=str,
-        help='IP address to bind to for incoming packets from the USB MITM proxy hardware.',
-        envvar='USBQ_LISTEN_ADDR',
-    ),
-    click.option(
-        '--listen-port',
-        default=64240,
-        type=int,
-        help='Port to bind to for incoming packets from the USB MITM proxy hardware.',
-        envvar='USBQ_LISTEN_PORT',
-    ),
-]
-
-_pcap_options = [
-    click.option(
-        '--pcap',
-        default='usb.pcap',
-        type=click.Path(dir_okay=False, writable=True, exists=False),
-        help='PCAP file to record USB traffic.',
-    )
-]
-
-_identity_options = [
-    click.option(
-        '--device-identity',
-        default=None,
-        type=click.File('rb'),
-        help='File to load pickled instance of a USB device.',
-    )
-]
-
-
-def _load_ident(fn):
-    if fn is not None:
-        d = pickle.load(fn)
-        log.debug(f'Loaded device ID: {d}')
-        return d
-    else:
-        return None
-
-
-def add_options(options):
-    def _add_options(func):
-        for option in reversed(options):
-            func = option(func)
-        return func
-
-    return _add_options
-
-
-def standard_plugin_options(
-    ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
-):
-    res = [
-        (
-            'proxy',
-            {
-                'device_addr': listen_addr,
-                'device_port': listen_port,
-                'host_addr': proxy_addr,
-                'host_port': proxy_port,
-            },
-        ),
-        ('pcap', {'pcap': pcap}),
-        ('decode', {}),
-        ('encode', {}),
-    ]
-
-    if ctx.obj['params']['dump']:
-        res.append(('hexdump', {}))
-
-    return res
-
-
 #
 # Commands
 #
@@ -208,18 +117,18 @@ def standard_plugin_options(
 
 @main.command()
 @click.pass_context
-@add_options(_network_options)
-@add_options(_pcap_options)
+@add_options(network_options)
+@add_options(pcap_options)
 def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
     'Man-in-the-Middle USB device to host communications.'
 
     enable_plugins(
         pm,
         standard_plugin_options(
-            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+            proxy_addr, proxy_port, listen_addr, listen_port, pcap, dump=ctx.obj['dump']
         ),
-        disabled=ctx.obj['params']['disable_plugin'],
-        enabled=ctx.obj['params']['enable_plugin'],
+        disabled=ctx.obj['disable_plugin'],
+        enabled=ctx.obj['enable_plugin'],
     )
     proxy = pm.get_plugin('proxy')
     proxy.start()
@@ -228,46 +137,50 @@ def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
 
 @main.command()
 @click.pass_context
-@add_options(_network_options)
-@add_options(_pcap_options)
+@add_options(network_options)
+@add_options(pcap_options)
 def hostscan(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
     'Scan USB host for supported devices.'
 
     enable_plugins(
         pm,
-        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(
+            proxy_addr, proxy_port, None, None, pcap, dump=ctx.obj['dump']
+        )
         + [('device', {}), ('hostscan', {})],
-        disabled=ctx.obj['params']['disable_plugin'],
-        enabled=ctx.obj['params']['enable_plugin'],
+        disabled=ctx.obj['disable_plugin'],
+        enabled=ctx.obj['enable_plugin'],
     )
     USBQEngine().run()
 
 
 @main.command()
 @click.pass_context
-@add_options(_network_options)
-@add_options(_pcap_options)
-@add_options(_identity_options)
+@add_options(network_options)
+@add_options(pcap_options)
+@add_options(identity_options)
 def hostfuzz(
     ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, device_identity
 ):
     'Proxy USB device and mutate packets to fuzz the host.'
 
-    ident = _load_ident(device_identity)
+    ident = load_ident(device_identity)
     enable_plugins(
         pm,
-        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(
+            proxy_addr, proxy_port, None, None, pcap, dump=ctx.obj['dump']
+        )
         + [('device', {'ident': ident}), ('hostfuzz', {})],
-        disabled=ctx.obj['params']['disable_plugin'],
-        enabled=ctx.obj['params']['enable_plugin'],
+        disabled=ctx.obj['disable_plugin'],
+        enabled=ctx.obj['enable_plugin'],
     )
     USBQEngine().run()
 
 
 @main.command()
 @click.pass_context
-@add_options(_network_options)
-@add_options(_pcap_options)
+@add_options(network_options)
+@add_options(pcap_options)
 @click.option(
     '--device-identity',
     default='device.id',
@@ -282,11 +195,11 @@ def clonedevice(
     enable_plugins(
         pm,
         standard_plugin_options(
-            ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap
+            proxy_addr, proxy_port, listen_addr, listen_port, pcap, dump=ctx.obj['dump']
         )
         + [('clonedevice', {'dest': device_identity})],
-        disabled=ctx.obj['params']['disable_plugin'],
-        enabled=ctx.obj['params']['enable_plugin'],
+        disabled=ctx.obj['disable_plugin'],
+        enabled=ctx.obj['enable_plugin'],
     )
     clone = pm.get_plugin('clonedevice')
     proxy = pm.get_plugin('proxy')
@@ -296,15 +209,15 @@ def clonedevice(
 
 @main.command()
 @click.pass_context
-@add_options(_network_options)
-@add_options(_pcap_options)
-@add_options(_identity_options)
+@add_options(network_options)
+@add_options(pcap_options)
+@add_options(identity_options)
 def device(
     ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap, device_identity
 ):
     'Emulate a USB device.'
 
-    ident = _load_ident(device_identity)
+    ident = load_ident(device_identity)
 
     if ident is not None:
         kwargs = {'ident': ident}
@@ -313,10 +226,12 @@ def device(
 
     enable_plugins(
         pm,
-        standard_plugin_options(ctx, proxy_addr, proxy_port, None, None, pcap)
+        standard_plugin_options(
+            proxy_addr, proxy_port, None, None, pcap, dump=ctx.obj['dump']
+        )
         + [('device', kwargs)],
-        disabled=ctx.obj['params']['disable_plugin'],
-        enabled=ctx.obj['params']['enable_plugin'],
+        disabled=ctx.obj['disable_plugin'],
+        enabled=ctx.obj['enable_plugin'],
     )
     device = pm.get_plugin('device')
     device.connect()
