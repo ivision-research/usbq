@@ -80,7 +80,7 @@ def add_options(options):
 
 
 def standard_plugin_options(
-    proxy_addr, proxy_port, listen_addr, listen_port, pcap, dump=False
+    proxy_addr, proxy_port, listen_addr, listen_port, pcap, dump=False, **kwargs
 ):
     res = [
         (

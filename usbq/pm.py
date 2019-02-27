@@ -54,7 +54,15 @@ def enable_plugins(pm, pmlist, disabled=[], enabled=[]):
         try:
             mod = importlib.import_module(pd.mod)
             cls = getattr(mod, pd.clsname)
-            pm.register(cls(**pdopts), name=pdname)
+
+            try:
+                pm.register(cls(**pdopts), name=pdname)
+            except Exception as e:
+                log.critical(
+                    f'Could not start plugin {pdname} ({cls.__name__}) with options {pdopts}'
+                )
+                raise e
+
             log.debug(
                 f'Loaded {pd.name} plugin from {pd.mod}:{pd.clsname} with kwargs {pdopts}'
             )
