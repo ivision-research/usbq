@@ -38,6 +38,9 @@ class ProxyPlugin(StateMachine):
     #: Port to send to for USB host.
     _host_port = attr.ib(converter=optional(int), default=None)
 
+    #: Timeout for select statement that waits for incoming USBQ packets
+    timeout = attr.ib(converter=int, default=1)
+
     # States
     idle = State('idle', initial=True)
     running = State('running')
@@ -107,7 +110,7 @@ class ProxyPlugin(StateMachine):
             return True
         else:
             # Wait
-            return self._has_data(self._socks, timeout=1)
+            return self._has_data(self._socks, timeout=self.timeout)
 
     @hookimpl
     def usbq_get_host_packet(self):

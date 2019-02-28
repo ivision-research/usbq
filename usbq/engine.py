@@ -7,7 +7,6 @@ from .pm import pm
 __all__ = ['USBQEngine']
 
 log = logging.getLogger(__name__)
-EMPTY = []
 
 
 @attr.s
@@ -50,29 +49,36 @@ class USBQEngine:
             log.info('USB device not connected yet. Dropping packet from host.')
             raise
 
+    def event(self):
+        # Let plugins do work
+        if hasattr(pm.hook, 'usbq_tick'):
+            pm.hook.usbq_tick()
+
+        # Used to prevent busy loop
+        pm.hook.usbq_wait_for_packet()
+
+        while any(pm.hook.usbq_device_has_packet()):
+            self._do_device_packet()
+
+        while any(pm.hook.usbq_host_has_packet()):
+            self._do_host_packet()
+
     def run(self):
-        log.info('Starting USB processing engine.')
-        exit_loop = False
-        while True:
-            try:
-                # Let plugins do work
-                if hasattr(pm.hook, 'usbq_tick'):
-                    pm.hook.usbq_tick()
-
-                # Used to prevent busy loop
-                pm.hook.usbq_wait_for_packet()
-
-                while any(pm.hook.usbq_device_has_packet()):
-                    self._do_device_packet()
-
-                while any(pm.hook.usbq_host_has_packet()):
-                    self._do_host_packet()
-
-                if exit_loop:
+        ipy = pm.get_plugin('ipython')
+        if ipy is not None:
+            log.info('Starting USB processing engine with IPython UI.')
+            ipy.run(engine=self)
+        else:
+            log.info('Starting USB processing engine.')
+            while True:
+                try:
+                    self.event()
+                except KeyboardInterrupt:
                     break
-            except KeyboardInterrupt:
-                log.critical('Control-C: User requested exit.')
-                pm.hook.usbq_teardown()
 
-                # Take one more pass through the loop to send/recv packets
-                exit_loop = True
+        log.critical('User requested exit.')
+        pm.hook.usbq_teardown()
+
+        # Take one more pass through the loop to send/recv packets
+        self.event()
+        return

@@ -67,5 +67,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.reload',
             clsname='ReloadUSBQHooks',
         ),
+        'ipython': USBQPluginDef(
+            name='ipython',
+            desc='Start an IPython session so that USBQ can be updated on the fly.',
+            mod='usbq.plugins.ipython',
+            clsname='IPythonUI',
+        ),
     }
 
