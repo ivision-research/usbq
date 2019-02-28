@@ -12,16 +12,21 @@ log = logging.getLogger(__name__)
 class IPythonUI:
     'IPython UI for usbq'
 
+    @hookimpl
+    def usbq_ipython_ns(self):
+        res = {'pm': pm}
+        return res
+
     def run(self, engine):
         self._engine = engine
         # Short enough to be responsive but not so short as to ramp up CPU usage
         proxy = pm.get_plugin('proxy')
         proxy.timeout = 0.01
 
+        ns = {key: value for d in pm.hook.usbq_ipython_ns() for key, value in d.items()}
+
         IPython.terminal.pt_inputhooks.register('usbq', self._ipython_loop)
-        IPython.start_ipython(
-            argv=['-i', '-c', '%gui usbq'], user_ns=self._load_ipy_ns()
-        )
+        IPython.start_ipython(argv=['-i', '-c', '%gui usbq'], user_ns=ns)
 
     def _ipython_loop(self, context):
         while not context.input_is_ready():

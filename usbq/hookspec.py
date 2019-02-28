@@ -222,6 +222,13 @@ class USBQHookSpec:
     #
     # Management
     #
+
+    @hookspec
+    def usbq_ipython_ns(self):
+        '''
+        Return a dict containing local namespace content for IPython session.
+        '''
+
     @hookspec
     def usbq_teardown(self):
         '''
