@@ -29,7 +29,7 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python :: 3.7',
     ],
-    description="Python component of Benoît Camredon's USBiquitous USB intrusion toolkit.",
+    description="New Python programming framework extending Benoît Camredon's USBiquitous USB intrusion toolkit.",
     entry_points={
         'console_scripts': ['usbq=usbq.cli:main'],
         # Pluggy plugin
@@ -37,7 +37,7 @@ setup(
     },
     install_requires=requirements,
     license="MIT license",
-    long_description='USBiquitous: USB intrusion toolkit',
+    long_description='USBQ -- Python programming framework for monitoring and modifying USB communications.',
     include_package_data=True,
     keywords='usbq',
     name='usbq',

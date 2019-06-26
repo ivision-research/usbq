@@ -88,7 +88,7 @@ def _enable_tracing():
 )
 @click.pass_context
 def main(ctx, debug, trace, logfile, **kwargs):
-    '''USBiquitous: USB Intrustion Toolkit'''
+    '''USBQ: Python programming framework for monitoring and modifying USB communications.'''
 
     ctx.ensure_object(dict)
     ctx.obj['dump'] = ctx.params['dump']
