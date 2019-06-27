@@ -5,7 +5,9 @@ from pathlib import Path
 import attr
 
 from ..hookspec import hookimpl
-from ..pm import HOOK_CLSNAME, HOOK_MOD, pm
+from ..pm import HOOK_CLSNAME
+from ..pm import HOOK_MOD
+from ..pm import pm
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ class ReloadUSBQHooks:
             try:
                 mod = importlib.import_module(HOOK_MOD)
                 importlib.reload(mod)
-            except:
+            except Exception:
                 log.critical('Could not reload usbq_hooks.py.')
                 return
 

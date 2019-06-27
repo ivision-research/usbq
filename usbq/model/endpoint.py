@@ -1,7 +1,9 @@
 import attr
 
 from ..defs import USBDefs
-from ..dissect.usb import EndpointDescriptor, bEndpointAddress, bmAttributes
+from ..dissect.usb import bEndpointAddress
+from ..dissect.usb import bmAttributes
+from ..dissect.usb import EndpointDescriptor
 
 __all__ = ['Endpoint']
 

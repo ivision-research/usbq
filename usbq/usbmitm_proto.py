@@ -1,27 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from scapy.fields import (
-    ConditionalField,
-    EnumField,
-    LEIntField,
-    LEShortField,
-    LESignedIntField,
-    PacketField,
-    StrField,
-    struct,
-)
+from scapy.fields import ConditionalField
+from scapy.fields import EnumField
+from scapy.fields import LEIntField
+from scapy.fields import LEShortField
+from scapy.fields import LESignedIntField
+from scapy.fields import PacketField
+from scapy.fields import StrField
+from scapy.fields import struct
 from scapy.packet import Packet
 
 from .defs import USBDefs
 from .dissect.fields import TypePacketField
-from .dissect.usb import (
-    URB,
-    ConfigurationDescriptor,
-    Descriptor,
-    DeviceDescriptor,
-    GetDescriptor,
-)
+from .dissect.usb import ConfigurationDescriptor
+from .dissect.usb import Descriptor
+from .dissect.usb import DeviceDescriptor
+from .dissect.usb import GetDescriptor
+from .dissect.usb import URB
 
 __all__ = [
     'USBMessageHost',

@@ -3,7 +3,8 @@ import logging
 import attr
 
 from ..hookspec import hookimpl
-from ..usbmitm_proto import USBMessageDevice, USBMessageHost
+from ..usbmitm_proto import USBMessageDevice
+from ..usbmitm_proto import USBMessageHost
 
 log = logging.getLogger(__name__)
 

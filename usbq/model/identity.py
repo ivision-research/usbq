@@ -5,14 +5,12 @@ import attr
 from scapy.all import raw
 
 from ..defs import USBDefs
-from ..dissect.usb import (
-    ConfigurationDescriptor,
-    Descriptor,
-    DeviceDescriptor,
-    EndpointDescriptor,
-    InterfaceDescriptor,
-    StringDescriptor,
-)
+from ..dissect.usb import ConfigurationDescriptor
+from ..dissect.usb import Descriptor
+from ..dissect.usb import DeviceDescriptor
+from ..dissect.usb import EndpointDescriptor
+from ..dissect.usb import InterfaceDescriptor
+from ..dissect.usb import StringDescriptor
 from ..usbmitm_proto import ManagementNewDevice
 
 __all__ = ['DeviceIdentity']
@@ -130,11 +128,11 @@ class DeviceIdentity:
                     request.bDescriptorType
                     == USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR
                 ):
-                    l = request.wLength
-                    res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
+                    req_len = request.wLength
+                    res = Descriptor(raw(self[request.bDescriptorType][0])[:req_len])
                 else:
-                    l = request.wLength
-                    res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
+                    req_len = request.wLength
+                    res = Descriptor(raw(self[request.bDescriptorType][0])[:req_len])
             return res
         except Exception:
             return

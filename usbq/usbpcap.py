@@ -45,8 +45,8 @@ pcap_urb_transfert = {
     PCAP_ISOC: "URB_ISOC",
 }
 pcap_urb_status = {0: "Success", -115: "Operation in progress", -32: "Broken Pipe"}
-pcap_setup_request = {0: "relevant", 0x2d: "not relevant"}
-pcap_data_present = {0: "present", 0x3c: "not present"}
+pcap_setup_request = {0: "relevant", 0x2D: "not relevant"}
+pcap_data_present = {0: "present", 0x3C: "not present"}
 
 eptype_to_pcap_type = {
     USBDefs.EP.TransferType.CTRL: PCAP_CTRL,
@@ -76,8 +76,8 @@ def usbdev_to_usbpcap(msg):
     """ Transform a USBMessageDevice message to a USBPcap message """
     pcap = usb_to_usbpcap(msg)
     pcap.urb_type = "C"
-    pcap.device_setup_request = 0x2d  # No relevant
-    pcap.data_present = 0 if msg.ep.eptype == 1 else 0x3e
+    pcap.device_setup_request = 0x2D  # No relevant
+    pcap.data_present = 0 if msg.ep.eptype == 1 else 0x3E
     if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN and msg.response is not None:
         pcap.descriptor = msg.response
         pcap.urb_length = len(msg.response) + len(msg.data)
@@ -96,7 +96,7 @@ def usbhost_to_usbpcap(msg):
     pcap = usb_to_usbpcap(msg)
     pcap.urb_type = "S"
     pcap.device_setup_request = 0  # Relevant
-    pcap.data_present = 0x3e if msg.ep.eptype == 1 else 0
+    pcap.data_present = 0x3E if msg.ep.eptype == 1 else 0
     if msg.ep.is_ctrl_0() and msg.ep.epdir == PROTO_IN:
         pcap.urb_length = msg.request.wLength
         pcap.data_length = 0

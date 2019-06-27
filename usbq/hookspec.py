@@ -126,7 +126,7 @@ class USBQHookSpec:
     def usbq_get_host_packet(self):
         '''
         Get raw data from USB host.
-        
+
         The format of the data is indeterminate as it could be
         sourced from the usbq_core module, pcap file, or some other source.
         Use the decode hook to decode the data prior to usage.

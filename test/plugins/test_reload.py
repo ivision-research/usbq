@@ -1,10 +1,10 @@
-import pytest
-
-from importlib import import_module
 from pathlib import Path
 
+import pytest
+
 from usbq.plugins.reload import ReloadUSBQHooks
-from usbq.pm import pm, enable_plugins
+from usbq.pm import enable_plugins
+from usbq.pm import pm
 
 VER_ONE = '''
 from usbq.hookspec import hookimpl

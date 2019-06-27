@@ -1,7 +1,8 @@
 import pytest
 
 from usbq.plugins.hexdump import Hexdump
-from usbq.usbmitm_proto import USBMessageDevice, USBMessageHost
+from usbq.usbmitm_proto import USBMessageDevice
+from usbq.usbmitm_proto import USBMessageHost
 
 
 @pytest.mark.parametrize('cls', [USBMessageDevice, USBMessageHost])

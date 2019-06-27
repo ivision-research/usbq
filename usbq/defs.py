@@ -54,7 +54,7 @@ class USBDefs:
         STRING_DESCRIPTOR = 3
         INTERFACE_DESCRIPTOR = 4
         ENDPOINT_DESCRIPTOR = 5
-        BOS_DESCRIPTOR = 0xf
+        BOS_DESCRIPTOR = 0xF
         HID_DESCRIPTOR = 0x21
         HID_REPORT_DESCRIPTOR = 0x22
 
@@ -68,7 +68,7 @@ class URBDefs:
     '''
     USB Request Block field values
 
-    See https://www.kernel.org/doc/html/v4.15/driver-api/usb/URB.html    
+    See https://www.kernel.org/doc/html/v4.15/driver-api/usb/URB.html
     '''
 
     class Direction(AutoDescEnum):
@@ -89,8 +89,8 @@ class URBDefs:
         GET_REPORT = 1
         GET_DESCRIPTOR = 6
         SET_CONFIGURATION = 9
-        SET_IDLE = 0xa
-        SET_INTERFACE = 0xb
+        SET_IDLE = 0xA
+        SET_INTERFACE = 0xB
 
     class Language(AutoDescEnum):
         'Language of string descriptor request'

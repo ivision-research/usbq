@@ -2,7 +2,8 @@ import logging
 import time
 
 import attr
-from statemachine import State, StateMachine
+from statemachine import State
+from statemachine import StateMachine
 
 from ..hookspec import hookimpl
 from ..pm import pm

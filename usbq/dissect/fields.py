@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-
-from scapy.fields import (
-    EnumField,
-    LEShortEnumField,
-    StrField,
-    StrFixedLenField,
-    StrLenField,
-    VolatileValue,
-    conf,
-    lhex,
-)
+from scapy.fields import conf
+from scapy.fields import EnumField
+from scapy.fields import LEShortEnumField
+from scapy.fields import lhex
+from scapy.fields import StrField
+from scapy.fields import StrFixedLenField
+from scapy.fields import StrLenField
+from scapy.fields import VolatileValue
 
 __all__ = [
     'XLEShortEnumField',
@@ -65,6 +62,6 @@ class TypePacketField(StrField):
         remain = ""
         if 'Padding' in i:
             r = i['Padding']
-            del (r.underlayer.payload)
+            del r.underlayer.payload
             remain = r.load
         return remain, i

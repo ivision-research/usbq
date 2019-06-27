@@ -2,12 +2,15 @@ import importlib
 import logging
 import os.path
 import sys
-from collections import ChainMap, OrderedDict
+from collections import ChainMap
+from collections import OrderedDict
 
 import pluggy
 
 from .exceptions import USBQInvocationError
-from .hookspec import USBQ_EP, USBQHookSpec, USBQPluginDef
+from .hookspec import USBQ_EP
+from .hookspec import USBQHookSpec
+from .hookspec import USBQPluginDef
 
 __all__ = ['AVAILABLE_PLUGINS', 'enable_plugins']
 

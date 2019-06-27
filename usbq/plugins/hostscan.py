@@ -2,18 +2,17 @@ import logging
 import time
 
 import attr
-from statemachine import State, StateMachine
+from statemachine import State
+from statemachine import StateMachine
 
 from ..defs import USBDefs
-from ..dissect.usb import (
-    ConfigurationDescriptor,
-    DeviceDescriptor,
-    EndpointDescriptor,
-    InterfaceDescriptor,
-    StringDescriptor,
-    bEndpointAddress,
-    bmAttributes,
-)
+from ..dissect.usb import bEndpointAddress
+from ..dissect.usb import bmAttributes
+from ..dissect.usb import ConfigurationDescriptor
+from ..dissect.usb import DeviceDescriptor
+from ..dissect.usb import EndpointDescriptor
+from ..dissect.usb import InterfaceDescriptor
+from ..dissect.usb import StringDescriptor
 from ..hookspec import hookimpl
 from ..model import DeviceIdentity
 from ..pm import pm

@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-
-from scapy.fields import (
-    BitEnumField,
-    BitField,
-    ByteEnumField,
-    ByteField,
-    FieldLenField,
-    LEShortField,
-    PacketField,
-    PacketListField,
-    ShortEnumField,
-    StrField,
-    StrLenField,
-    XByteField,
-    struct,
-)
+from scapy.fields import BitEnumField
+from scapy.fields import BitField
+from scapy.fields import ByteEnumField
+from scapy.fields import ByteField
+from scapy.fields import FieldLenField
+from scapy.fields import LEShortField
+from scapy.fields import PacketField
+from scapy.fields import PacketListField
+from scapy.fields import ShortEnumField
+from scapy.fields import StrField
+from scapy.fields import StrLenField
+from scapy.fields import struct
+from scapy.fields import XByteField
 from scapy.packet import Packet
 
-from ..defs import URBDefs, USBDefs
-from .fields import (
-    BytesFixedLenField,
-    UnicodeStringLenField,
-    XLEShortEnumField,
-)
+from ..defs import URBDefs
+from ..defs import USBDefs
+from .fields import BytesFixedLenField
+from .fields import UnicodeStringLenField
+from .fields import XLEShortEnumField
 
 __all__ = [
     'bEndpointAddress',
@@ -194,7 +190,7 @@ def URB(payload):
         cls = SetConfiguration
     elif breqtype == 0x21 and breq == 10:
         cls = SetIDLE
-    elif breqtype == 0 and breq == 0xb:
+    elif breqtype == 0 and breq == 0xB:
         cls = SetInterface
     else:
         cls = RequestDescriptor
@@ -214,8 +210,8 @@ def Descriptor(payload):
         return RawDescriptor(payload)
     desctype = payload[1]
     if desctype == 1:
-        l = payload[0]
-        if l == 5:
+        desc_len = payload[0]
+        if desc_len == 5:
             cls = HIDReportDescriptor
         elif len(payload) != 18:
             cls = RawDescriptor
@@ -300,7 +296,7 @@ class ConfigurationDescriptor(USBDescriptor):
         ByteField("bNumInterfaces", 1),
         ByteField("bConfigurationValue", 1),
         ByteField("iConfiguration", 0),
-        ByteField("bmAttributes", 0xa0),
+        ByteField("bmAttributes", 0xA0),
         ByteField("bMaxPower", 50),
         PacketListField("descriptors", None, Descriptor),
     ]

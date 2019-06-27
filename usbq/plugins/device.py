@@ -1,23 +1,24 @@
 import logging
 
 import attr
-from attr.validators import instance_of, optional
-from statemachine import State, StateMachine
+from attr.validators import instance_of
+from attr.validators import optional
+from statemachine import State
+from statemachine import StateMachine
 
-from ..dissect.usb import GetDescriptor, SetConfiguration
+from ..dissect.usb import GetDescriptor
+from ..dissect.usb import SetConfiguration
 from ..hookspec import hookimpl
 from ..model import DeviceIdentity
 from ..pm import pm
-from ..usbmitm_proto import (
-    NEW_DEVICE,
-    RESET,
-    ManagementMessage,
-    ManagementReset,
-    USBMessageDevice,
-    USBMessageHost,
-    USBMessageRequest,
-    USBMessageResponse,
-)
+from ..usbmitm_proto import ManagementMessage
+from ..usbmitm_proto import ManagementReset
+from ..usbmitm_proto import NEW_DEVICE
+from ..usbmitm_proto import RESET
+from ..usbmitm_proto import USBMessageDevice
+from ..usbmitm_proto import USBMessageHost
+from ..usbmitm_proto import USBMessageRequest
+from ..usbmitm_proto import USBMessageResponse
 
 __all__ = ['USBDevice']
 

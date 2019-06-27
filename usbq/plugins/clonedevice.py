@@ -3,18 +3,17 @@ import pickle
 from pathlib import Path
 
 import attr
-from statemachine import State, StateMachine
+from statemachine import State
+from statemachine import StateMachine
 
 from ..dissect.usb import GetDescriptor
 from ..hookspec import hookimpl
 from ..model import DeviceIdentity
-from ..usbmitm_proto import (
-    NEW_DEVICE,
-    RESET,
-    ManagementMessage,
-    USBMessageDevice,
-    USBMessageResponse,
-)
+from ..usbmitm_proto import ManagementMessage
+from ..usbmitm_proto import NEW_DEVICE
+from ..usbmitm_proto import RESET
+from ..usbmitm_proto import USBMessageDevice
+from ..usbmitm_proto import USBMessageResponse
 
 __all__ = ['CloneDevice']
 

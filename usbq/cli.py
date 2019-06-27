@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import logging
 import sys
 
@@ -8,15 +7,15 @@ from coloredlogs import ColoredFormatter
 
 from . import __version__
 from .engine import USBQEngine
-from .opts import (
-    add_options,
-    identity_options,
-    load_ident,
-    network_options,
-    pcap_options,
-    standard_plugin_options,
-)
-from .pm import AVAILABLE_PLUGINS, enable_plugins, pm
+from .opts import add_options
+from .opts import identity_options
+from .opts import load_ident
+from .opts import network_options
+from .opts import pcap_options
+from .opts import standard_plugin_options
+from .pm import AVAILABLE_PLUGINS
+from .pm import enable_plugins
+from .pm import pm
 
 __all__ = []
 log = logging.getLogger(__name__)

@@ -4,18 +4,17 @@ import socket
 
 import attr
 from attr.converters import optional
-from statemachine import State, StateMachine
+from statemachine import State
+from statemachine import StateMachine
 
 from ..hookspec import hookimpl
 from ..pm import pm
-from ..usbmitm_proto import (
-    RESET,
-    ManagementMessage,
-    ManagementReload,
-    ManagementReset,
-    USBMessageDevice,
-    USBMessageHost,
-)
+from ..usbmitm_proto import ManagementMessage
+from ..usbmitm_proto import ManagementReload
+from ..usbmitm_proto import ManagementReset
+from ..usbmitm_proto import RESET
+from ..usbmitm_proto import USBMessageDevice
+from ..usbmitm_proto import USBMessageHost
 
 log = logging.getLogger(__name__)
 TIMEOUT = ([], [], [])

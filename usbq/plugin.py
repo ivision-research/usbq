@@ -1,6 +1,6 @@
 'Default plugin implementations'
-
-from .hookspec import USBQPluginDef, hookimpl
+from .hookspec import hookimpl
+from .hookspec import USBQPluginDef
 
 
 @hookimpl

@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-
-from scapy.fields import (
-    ByteEnumField,
-    ByteField,
-    LEShortField,
-    PacketListField,
-    ShortField,
-    StrField,
-    struct,
-)
+from scapy.fields import ByteEnumField
+from scapy.fields import ByteField
+from scapy.fields import LEShortField
+from scapy.fields import PacketListField
+from scapy.fields import ShortField
+from scapy.fields import StrField
+from scapy.fields import struct
 
 from ..defs import USBDefs
-from .usb import USBDescriptor, USBPacket
+from .usb import USBDescriptor
+from .usb import USBPacket
 
 __all__ = ['HIDReportDescriptor', 'HIDDescriptor', 'ReportDescriptor']
 

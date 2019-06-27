@@ -1,9 +1,11 @@
 import pytest
-from scapy.all import raw, rdpcap
+from scapy.all import raw
+from scapy.all import rdpcap
 from scapy.utils import RawPcapWriter
 
 from usbq.usbmitm_proto import USBMessageHost
-from usbq.usbpcap import USBPcap, usbhost_to_usbpcap
+from usbq.usbpcap import usbhost_to_usbpcap
+from usbq.usbpcap import USBPcap
 
 
 @pytest.fixture
