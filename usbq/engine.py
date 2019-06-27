@@ -1,5 +1,6 @@
-import attr
 import logging
+
+import attr
 
 from .exceptions import USBQDeviceNotConnected
 from .pm import pm

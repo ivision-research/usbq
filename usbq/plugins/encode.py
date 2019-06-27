@@ -1,6 +1,6 @@
-import attr
 import logging
 
+import attr
 from scapy.all import raw
 
 from ..hookspec import hookimpl

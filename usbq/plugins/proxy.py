@@ -1,22 +1,21 @@
-import attr
 import logging
-import socket
 import select
+import socket
 
+import attr
 from attr.converters import optional
-from statemachine import StateMachine, State
+from statemachine import State, StateMachine
 
+from ..hookspec import hookimpl
+from ..pm import pm
 from ..usbmitm_proto import (
-    USBMessageDevice,
-    USBMessageHost,
-    ManagementReset,
+    RESET,
     ManagementMessage,
     ManagementReload,
-    RESET,
+    ManagementReset,
+    USBMessageDevice,
+    USBMessageHost,
 )
-from ..hookspec import hookimpl
-from ..exceptions import USBQDeviceNotConnected
-from ..pm import pm
 
 log = logging.getLogger(__name__)
 TIMEOUT = ([], [], [])
@@ -145,7 +144,7 @@ class ProxyPlugin(StateMachine):
     def on_reset(self):
         log.info('Reset device.')
 
-        pkt = self._send_device_mgmt(
+        self._send_device_mgmt(
             ManagementMessage(
                 management_type=RESET, management_content=ManagementReset()
             )
@@ -163,4 +162,3 @@ class ProxyPlugin(StateMachine):
     @hookimpl
     def usbq_teardown(self):
         self.reset()
-

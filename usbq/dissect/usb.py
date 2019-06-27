@@ -1,33 +1,51 @@
 # -*- coding: utf-8 -*-
 
-from scapy.fields import *
+from scapy.fields import (
+    BitEnumField,
+    BitField,
+    ByteEnumField,
+    ByteField,
+    FieldLenField,
+    LEShortField,
+    PacketField,
+    PacketListField,
+    ShortEnumField,
+    StrField,
+    StrLenField,
+    XByteField,
+    struct,
+)
 from scapy.packet import Packet
 
-from .fields import *
-from .defs import *
+from ..defs import URBDefs, USBDefs
+from .fields import (
+    BytesFixedLenField,
+    UnicodeStringLenField,
+    XLEShortEnumField,
+)
 
 __all__ = [
-    'USBPacket',
-    'USBDescriptor',
-    'bmRequestType',
-    'RequestDescriptor',
-    'GetDescriptor',
-    'GetReport',
-    'SetConfiguration',
-    'SetInterface',
-    'SetIDLE',
-    'RawDescriptor',
-    'UnknownDescriptor',
-    'DeviceDescriptor',
-    'ConfigurationDescriptor',
-    'StringDescriptor',
-    'InterfaceDescriptor',
     'bEndpointAddress',
     'bmAttributes',
-    'EndpointDescriptor',
+    'bmRequestType',
     'BOSDescriptor',
-    'URB',
+    'ConfigurationDescriptor',
     'Descriptor',
+    'DeviceDescriptor',
+    'EndpointDescriptor',
+    'GetDescriptor',
+    'GetReport',
+    'InterfaceDescriptor',
+    'RawDescriptor',
+    'RequestDescriptor',
+    'SetConfiguration',
+    'SetIDLE',
+    'SetInterface',
+    'StringDescriptor',
+    'UnknownDescriptor',
+    'URB',
+    'USBDescriptor',
+    'USBPacket',
 ]
 
 
@@ -40,11 +58,6 @@ class USBPacket(Packet):
 
 
 class USBDescriptor(USBPacket):
-    def post_build(self, p, pay):
-        if self.bLength is None:
-            p = struct.pack("B", len(p)) + p[1:]
-        return p + pay
-
     def pre_dissect(self, s):
         if hasattr(self, "desc_len"):
             self.desc_len = len(s)
@@ -59,9 +72,11 @@ class USBDescriptor(USBPacket):
 
 class bmRequestType(USBPacket):
     fields_desc = [
-        BitEnumField("direction", 1, 1, urb_direction),
-        BitEnumField("type", 0, 2, urb_type),
-        BitEnumField("recipient", 0, 5, urb_recipient),
+        BitEnumField(
+            "direction", URBDefs.Direction.DEVICE_TO_HOST, 1, URBDefs.Direction.desc
+        ),
+        BitEnumField("type", URBDefs.Type.STANDARD, 2, URBDefs.Type.desc),
+        BitEnumField("recipient", URBDefs.Recipient.DEVICE, 5, URBDefs.Recipient.desc),
     ]
 
 
@@ -86,16 +101,22 @@ class RequestDescriptor(USBPacket):
 class GetDescriptor(RequestDescriptor):
     fields_desc = [
         PacketField("bmRequestType", bmRequestType(), bmRequestType),
-        ByteEnumField("bRequest", 6, urb_bRequest),
+        ByteEnumField("bRequest", URBDefs.Request.GET_DESCRIPTOR, URBDefs.Request.desc),
         ByteField("descriptor_index", 0),
-        ByteEnumField("bDescriptorType", 1, urb_bDescriptorType),
-        ShortEnumField("language_id", 0, urb_language),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.DEVICE_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
+        ShortEnumField(
+            "language_id", URBDefs.Language.NONE_SPECIFIED, URBDefs.Language.desc
+        ),
         LEShortField("wLength", 0),
     ]
 
     def desc(self):
         return "GetDescriptor %s [sz:%u]" % (
-            urb_bDescriptorType.get(self.bDescriptorType, "ukn"),
+            USBDefs.DescriptorType[self.bDescriptorType],
             self.wLength,
         )
 
@@ -107,7 +128,7 @@ class GetReport(RequestDescriptor):
             bmRequestType(direction=1, type=1, recipient=1),
             bmRequestType,
         ),
-        ByteEnumField("bRequest", 1, urb_bRequest),
+        ByteEnumField("bRequest", URBDefs.Request.GET_REPORT, URBDefs.Request.desc),
         LEShortField("wValue", 0),
         LEShortField("wIndex", 0),
         LEShortField("wLength", 0),
@@ -120,7 +141,9 @@ class GetReport(RequestDescriptor):
 class SetConfiguration(RequestDescriptor):
     fields_desc = [
         PacketField("bmRequestType", bmRequestType(direction=0), bmRequestType),
-        ByteEnumField("bRequest", 9, urb_bRequest),
+        ByteEnumField(
+            "bRequest", URBDefs.Request.SET_CONFIGURATION, URBDefs.Request.desc
+        ),
         ByteField("bConfigurationValue", 1),
         LEShortField("wIndex", 0),
         LEShortField("wLength", 0),
@@ -137,7 +160,7 @@ class SetInterface(RequestDescriptor):
             bmRequestType(direction=0, type=0, recipient=1),
             bmRequestType,
         ),
-        ByteEnumField("bRequest", 11, urb_bRequest),
+        ByteEnumField("bRequest", URBDefs.Request.SET_INTERFACE, URBDefs.Request.desc),
         LEShortField("bAlternateSetting", 0),  # In fact byte + 1 padding
         LEShortField("wInterface", 1),
         LEShortField("wLength", 0),
@@ -150,7 +173,7 @@ class SetInterface(RequestDescriptor):
 class SetIDLE(RequestDescriptor):
     fields_desc = [
         PacketField("bmRequestType", bmRequestType(), bmRequestType),
-        ByteEnumField("bRequest", 0xa, urb_bRequest),
+        ByteEnumField("bRequest", URBDefs.Request.SET_IDLE, URBDefs.Request.desc),
         LEShortField("wValue", 1),
         LEShortField("wIndex", 0),
         LEShortField("wLength", 0),
@@ -198,17 +221,17 @@ def Descriptor(payload):
             cls = RawDescriptor
         else:
             cls = DeviceDescriptor
-    elif desctype == CONFIGURATION_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR:
         cls = ConfigurationDescriptor
-    elif desctype == STRING_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.STRING_DESCRIPTOR:
         cls = StringDescriptor
-    elif desctype == INTERFACE_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.INTERFACE_DESCRIPTOR:
         cls = InterfaceDescriptor
-    elif desctype == ENDPOINT_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.ENDPOINT_DESCRIPTOR:
         cls = EndpointDescriptor
-    elif desctype == BOS_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.BOS_DESCRIPTOR:
         cls = BOSDescriptor
-    elif desctype == HID_DESCRIPTOR:
+    elif desctype == USBDefs.DescriptorType.HID_DESCRIPTOR:
         cls = HIDDescriptor
     else:
         cls = UnknownDescriptor
@@ -222,7 +245,11 @@ class RawDescriptor(USBDescriptor):
 class UnknownDescriptor(USBDescriptor):
     fields_desc = [
         ByteField("bLength", None),
-        ByteEnumField("bDescriptorType", 1, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.DEVICE_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         BytesFixedLenField("data", "", length_from=lambda p: p.bLength - 2),
     ]
 
@@ -230,7 +257,11 @@ class UnknownDescriptor(USBDescriptor):
 class DeviceDescriptor(USBDescriptor):
     fields_desc = [
         ByteField("bLength", 18),
-        ByteEnumField("bDescriptorType", DEVICE_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.DEVICE_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         LEShortField("bcdUSB", 0x0200),
         ByteEnumField("bDeviceClass", 0, bDeviceClass),
         ByteField("bDeviceSubClass", 0),
@@ -260,7 +291,11 @@ class ConfigurationDescriptor(USBDescriptor):
 
     fields_desc = [
         ByteField("bLength", 9),
-        ByteEnumField("bDescriptorType", CONFIGURATION_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         LEShortField("wTotalLength", None),
         ByteField("bNumInterfaces", 1),
         ByteField("bConfigurationValue", 1),
@@ -287,7 +322,11 @@ class StringDescriptor(USBDescriptor):
         FieldLenField(
             "bLength", None, length_of="bString", fmt="B", adjust=lambda pkt, x: x + 2
         ),
-        ByteEnumField("bDescriptorType", STRING_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.STRING_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         # ConditionalField(LEShortField("wLANGID",0x0409),lambda p:p.bLength==4),
         UnicodeStringLenField(
             "bString", "\x09\x04", length_from=lambda p: p.bLength - 2
@@ -306,7 +345,11 @@ class InterfaceDescriptor(USBDescriptor):
 
     fields_desc = [
         ByteField("bLength", 9),
-        ByteEnumField("bDescriptorType", INTERFACE_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.INTERFACE_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         ByteField("bInterfaceNumber", 0),
         ByteField("bAlternateSetting", 0),
         ByteField("bNumEndpoint", 1),
@@ -331,18 +374,10 @@ class InterfaceDescriptor(USBDescriptor):
 
 class bEndpointAddress(USBPacket):
     fields_desc = [
-        BitEnumField("direction", 1, 1, bEndpointDirection),
+        BitEnumField("direction", 1, 1, USBDefs.EP.Direction.desc),
         BitField("garbage", 0, 3),
         BitField("endpoint_number", 1, 4),
     ]
-
-
-attribute_transfert_type = {
-    CTRL: "Control",
-    ISOC: "Isochronous",
-    BULK: "Bulk",
-    INT: "Interrupt",
-}
 
 
 class bmAttributes(USBPacket):
@@ -350,7 +385,7 @@ class bmAttributes(USBPacket):
         BitField("garbage", 0, 2),
         BitField("behaviour", 0, 2),
         BitField("synchro", 0, 2),
-        BitEnumField("transfert", 3, 2, attribute_transfert_type),
+        BitEnumField("transfert", 3, 2, USBDefs.EP.TransferType.desc),
     ]
 
 
@@ -359,7 +394,11 @@ class EndpointDescriptor(USBDescriptor):
 
     fields_desc = [
         ByteField("bLength", 7),
-        ByteEnumField("bDescriptorType", ENDPOINT_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.ENDPOINT_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         PacketField("bEndpointAddress", bEndpointAddress(), bEndpointAddress),
         PacketField("bmAttributes", bmAttributes(), bmAttributes),
         LEShortField("wMaxPacketSize", 8),
@@ -370,8 +409,8 @@ class EndpointDescriptor(USBDescriptor):
     def desc(self):
         return "Endpoint Descriptor EP%u%s %s int:%u pkt:%u len:%u" % (
             self.bEndpointAddress.endpoint_number,
-            bEndpointDirection[self.bEndpointAddress.direction].ljust(3, " "),
-            attribute_transfert_type[self.bmAttributes.transfert],
+            USBDefs.EP.Direction[self.bEndpointAddress.direction].ljust(3, " "),
+            USBDefs.EP.TransferType[self.bmAttributes.transfert],
             self.bInterval,
             self.wMaxPacketSize,
             self.bLength,
@@ -387,7 +426,11 @@ class BOSDescriptor(USBDescriptor):
             fmt="B",
             adjust=lambda pkt, x: x + 3,
         ),
-        ByteEnumField("bDescriptorType", BOS_DESCRIPTOR, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.BOS_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         ByteField("bDevCapabilityType", 0),
         StrLenField("bDevCapabilityData", "", length_from=lambda p: p.bLength - 3),
     ]

@@ -1,15 +1,11 @@
-import attr
 import logging
 import time
 
-from statemachine import StateMachine, State
+import attr
+from statemachine import State, StateMachine
 
-from ..pm import pm
 from ..hookspec import hookimpl
-from ..usbmitm_proto import USBMessageDevice
-from ..model import DeviceIdentity
-from ..dissect.defs import *
-from ..dissect.usb import *
+from ..pm import pm
 
 log = logging.getLogger(__name__)
 

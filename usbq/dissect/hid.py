@@ -1,20 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from scapy.fields import *
+from scapy.fields import (
+    ByteEnumField,
+    ByteField,
+    LEShortField,
+    PacketListField,
+    ShortField,
+    StrField,
+    struct,
+)
 
-from .fields import *
-from .usb import *
-from .defs import *
+from ..defs import USBDefs
+from .usb import USBDescriptor, USBPacket
 
 __all__ = ['HIDReportDescriptor', 'HIDDescriptor', 'ReportDescriptor']
-
-HID_PROTOCOL_KEYOARD = 1
-HID_PROTOCOL_MOUSE = 2
 
 
 class HIDReportDescriptor(USBPacket):
     fields_desc = [
-        ByteField("bDescriptorType", 0x22),
+        ByteField("bDescriptorType", USBDefs.DescriptorType.HID_REPORT_DESCRIPTOR),
         LEShortField("wDescriptorLength", 0x41),
     ]
 
@@ -27,7 +31,11 @@ class HIDDescriptor(USBDescriptor):
 
     fields_desc = [
         ByteField("bLength", None),
-        ByteEnumField("bDescriptorType", 0x21, urb_bDescriptorType),
+        ByteEnumField(
+            "bDescriptorType",
+            USBDefs.DescriptorType.HID_DESCRIPTOR,
+            USBDefs.DescriptorType.desc,
+        ),
         ShortField("bcdHID", 0x1001),
         ByteField("bCountryCode", 0),
         ByteField("bNumDescriptors", 1),

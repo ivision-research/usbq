@@ -1,7 +1,9 @@
 import attr
 
-from ..dissect.usb import *
+from ..dissect.usb import InterfaceDescriptor
 from .endpoint import Endpoint
+
+__all__ = ['Interface']
 
 
 @attr.s

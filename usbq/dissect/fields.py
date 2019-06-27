@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from scapy.fields import *
+from scapy.fields import (
+    EnumField,
+    LEShortEnumField,
+    StrField,
+    StrFixedLenField,
+    StrLenField,
+    VolatileValue,
+    conf,
+    lhex,
+)
 
 __all__ = [
     'XLEShortEnumField',

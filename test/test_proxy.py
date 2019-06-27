@@ -1,6 +1,6 @@
 import pytest
+
 from usbq.plugins.proxy import ProxyPlugin
-from usbq.exceptions import USBQDeviceNotConnected
 
 DATA = b'1234'
 
@@ -39,11 +39,6 @@ def test_send_recv(proxy):
 
     assert proxy.usbq_get_host_packet() == DATA
     assert not proxy.usbq_host_has_packet()
-
-
-def test_not_connected(proxy):
-    with pytest.raises(USBQDeviceNotConnected):
-        proxy.usbq_send_device_packet(DATA)
 
 
 @pytest.mark.timeout(1)

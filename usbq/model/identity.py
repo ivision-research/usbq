@@ -1,11 +1,18 @@
-import attr
 import logging
-
-from scapy.all import raw
 from collections import defaultdict
 
-from ..dissect.defs import *
-from ..dissect.usb import *
+import attr
+from scapy.all import raw
+
+from ..defs import USBDefs
+from ..dissect.usb import (
+    ConfigurationDescriptor,
+    Descriptor,
+    DeviceDescriptor,
+    EndpointDescriptor,
+    InterfaceDescriptor,
+    StringDescriptor,
+)
 from ..usbmitm_proto import ManagementNewDevice
 
 __all__ = ['DeviceIdentity']
@@ -45,13 +52,13 @@ class StringList(DescriptorList):
 
 
 DEFAULT_DESCRIPTORS = {
-    DEVICE_DESCRIPTOR: DeviceDescriptor(),
-    CONFIGURATION_DESCRIPTOR: [
+    USBDefs.DescriptorType.DEVICE_DESCRIPTOR: DeviceDescriptor(),
+    USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR: [
         ConfigurationDescriptor(
             descriptors=[InterfaceDescriptor(), EndpointDescriptor()]
         )
     ],
-    STRING_DESCRIPTOR: [
+    USBDefs.DescriptorType.STRING_DESCRIPTOR: [
         # Supported languages
         StringDescriptor(),
         StringDescriptor(bString='USBIQUITOUS'.encode('utf-16le')),
@@ -74,7 +81,10 @@ def to_descriptor_dict(v):
         res[v.bDescriptorType].append(v)
 
     # Put the _largest_ descriptor in the first index
-    for dtype in [DEVICE_DESCRIPTOR, CONFIGURATION_DESCRIPTOR]:
+    for dtype in [
+        USBDefs.DescriptorType.DEVICE_DESCRIPTOR,
+        USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR,
+    ]:
         res[dtype] = sorted(res[dtype], key=lambda d: -len(d))
 
     return res
@@ -85,7 +95,7 @@ class DeviceIdentity:
     ''' Set of usb descriptors that characterize a device '''
 
     descriptors = attr.ib(converter=to_descriptor_dict, default=DEFAULT_DESCRIPTORS)
-    speed = attr.ib(default=HIGH_SPEED)
+    speed = attr.ib(default=USBDefs.Speed.HIGH_SPEED)
 
     @classmethod
     def from_interface(cls, interface, *args, **kargs):
@@ -108,41 +118,44 @@ class DeviceIdentity:
     def from_request(self, request):
         ''' Return the corresponding Descriptor asked in the request '''
         try:
-            if request.bDescriptorType == STRING_DESCRIPTOR:
-                string_desc = self[STRING_DESCRIPTOR]
+            if request.bDescriptorType == USBDefs.DescriptorType.STRING_DESCRIPTOR:
+                string_desc = self[USBDefs.DescriptorType.STRING_DESCRIPTOR]
                 if request.descriptor_index > len(string_desc):
                     res = string_desc[0]
                 else:
                     res = string_desc[request.descriptor_index]
             else:
                 # Conversion to raw is used to trim descriptor if required by host
-                if request.bDescriptorType == CONFIGURATION_DESCRIPTOR:
+                if (
+                    request.bDescriptorType
+                    == USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR
+                ):
                     l = request.wLength
                     res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
                 else:
                     l = request.wLength
                     res = Descriptor(raw(self[request.bDescriptorType][0])[:l])
             return res
-        except Exception as e:
+        except Exception:
             return
 
     # Device Descriptor access
     @property
     def device(self):
-        return self[DEVICE_DESCRIPTOR][0]
+        return self[USBDefs.DescriptorType.DEVICE_DESCRIPTOR][0]
 
     @device.setter
     def device(self, desc):
-        self.descriptors[DEVICE_DESCRIPTOR] = [desc]
+        self.descriptors[USBDefs.DescriptorType.DEVICE_DESCRIPTOR] = [desc]
 
     # Configuration descriptor access
     @property
     def configuration(self):
-        return self[CONFIGURATION_DESCRIPTOR][0]
+        return self[USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR][0]
 
     @configuration.setter
     def configuration(self, desc):
-        self.descriptors[CONFIGURATION_DESCRIPTOR] = [desc]
+        self.descriptors[USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR] = [desc]
 
     @property
     def interfaces(self):
@@ -154,11 +167,13 @@ class DeviceIdentity:
 
     @property
     def strings(self):
-        return StringList(self[STRING_DESCRIPTOR])
+        return StringList(self[USBDefs.DescriptorType.STRING_DESCRIPTOR])
 
     def set_strings(self, strings):
         for s in strings:
-            self.descriptors[STRING_DESCRIPTOR].append(StringDescriptor(bString=s))
+            self.descriptors[USBDefs.DescriptorType.STRING_DESCRIPTOR].append(
+                StringDescriptor(bString=s)
+            )
 
     def to_new_identity(self):
         return ManagementNewDevice(

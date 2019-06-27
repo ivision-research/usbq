@@ -1,11 +1,11 @@
-import attr
-import logging
 import importlib
-
+import logging
 from pathlib import Path
 
-from ..pm import pm, HOOK_MOD, HOOK_CLSNAME
+import attr
+
 from ..hookspec import hookimpl
+from ..pm import HOOK_CLSNAME, HOOK_MOD, pm
 
 log = logging.getLogger(__name__)
 

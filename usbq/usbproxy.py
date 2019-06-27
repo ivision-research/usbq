@@ -1,7 +1,8 @@
-import attr
-import socket
-import select
 import logging
+import select
+import socket
+
+import attr
 
 log = logging.getLogger(__name__)
 

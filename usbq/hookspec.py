@@ -1,5 +1,5 @@
-import pluggy
 import attr
+import pluggy
 
 __all__ = ['hookimpl', 'USBQPluginDef']
 

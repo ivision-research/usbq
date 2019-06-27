@@ -1,8 +1,7 @@
 import attr
 
-from ..dissect.usb import *
-from ..dissect.defs import *
-from ..usbmitm_proto import *
+from ..defs import USBDefs
+from ..dissect.usb import EndpointDescriptor, bEndpointAddress, bmAttributes
 
 __all__ = ['Endpoint']
 
@@ -10,8 +9,8 @@ __all__ = ['Endpoint']
 @attr.s(frozen=True)
 class Endpoint:
     epnum = attr.ib(converter=int, default=0)
-    eptype = attr.ib(converter=int, default=CTRL)
-    epdir = attr.ib(converter=int, default=OUT)
+    eptype = attr.ib(converter=int, default=USBDefs.EP.TransferType.CTRL)
+    epdir = attr.ib(converter=int, default=USBDefs.EP.Direction.OUT)
     maxpkt = attr.ib(converter=int, default=64)
     interval = attr.ib(converter=int, default=0)
 

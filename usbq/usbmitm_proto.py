@@ -1,13 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from scapy.fields import *
+from scapy.fields import (
+    ConditionalField,
+    EnumField,
+    LEIntField,
+    LEShortField,
+    LESignedIntField,
+    PacketField,
+    StrField,
+    struct,
+)
 from scapy.packet import Packet
 
-from .dissect.defs import *
-
-from .dissect.fields import *
-from .dissect.usb import *
+from .defs import USBDefs
+from .dissect.fields import TypePacketField
+from .dissect.usb import (
+    URB,
+    ConfigurationDescriptor,
+    Descriptor,
+    DeviceDescriptor,
+    GetDescriptor,
+)
 
 __all__ = [
     'USBMessageHost',
@@ -48,7 +62,7 @@ class USBMitm(Packet):
 class USBEp(USBMitm):
     fields_desc = [
         LEShortField("epnum", 0),
-        EnumField("eptype", CTRL, usbmessage_urb_type, "<I"),
+        EnumField("eptype", USBDefs.EP.TransferType.CTRL, usbmessage_urb_type, "<I"),
         EnumField("epdir", PROTO_IN, usbmessage_urb_dir, "<I"),
     ]
 
@@ -56,10 +70,10 @@ class USBEp(USBMitm):
         return "", s
 
     def is_ctrl_0(self):
-        return self.epnum == 0 and self.eptype == CTRL
+        return self.epnum == 0 and self.eptype == USBDefs.EP.TransferType.CTRL
 
     def is_interrupt(self):
-        return self.eptype == INT
+        return self.eptype == USBDefs.EP.TransferType.INT
 
 
 class USBAck(USBMitm):

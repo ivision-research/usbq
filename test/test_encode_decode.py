@@ -1,8 +1,5 @@
-import pytest
-
-from scapy.all import raw
-from usbq.plugins.encode import USBEncode
 from usbq.plugins.decode import USBDecode
+from usbq.plugins.encode import USBEncode
 
 
 def test_decode_encode():

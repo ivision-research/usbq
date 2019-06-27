@@ -1,13 +1,13 @@
-import pluggy
 import importlib
 import logging
 import os.path
 import sys
-
 from collections import ChainMap, OrderedDict
 
-from .hookspec import USBQ_EP, USBQHookSpec, USBQPluginDef
+import pluggy
+
 from .exceptions import USBQInvocationError
+from .hookspec import USBQ_EP, USBQHookSpec, USBQPluginDef
 
 __all__ = ['AVAILABLE_PLUGINS', 'enable_plugins']
 
@@ -80,4 +80,3 @@ def enable_plugins(pm, pmlist, disabled=[], enabled=[]):
                 )
             else:
                 raise
-

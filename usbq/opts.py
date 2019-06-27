@@ -1,3 +1,6 @@
+import logging
+import pickle
+
 import click
 
 # Shared options
@@ -10,6 +13,8 @@ __all__ = [
     'standard_plugin_options',
     'load_ident',
 ]
+
+log = logging.getLogger(__name__)
 
 network_options = [
     click.option(

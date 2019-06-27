@@ -9,13 +9,25 @@ __all__ = [
     'ack_from_msg',
 ]
 
-from scapy.fields import *
+from scapy.fields import (
+    BitEnumField,
+    BitField,
+    ByteEnumField,
+    ByteField,
+    CharEnumField,
+    ConditionalField,
+    LEIntField,
+    LELongField,
+    LEShortField,
+    PacketField,
+    StrField,
+)
 from scapy.packet import Packet
 
-from .dissect.fields import *
-from .dissect.usb import *
-from .dissect.defs import *
-from .usbmitm_proto import *
+from .defs import USBDefs
+from .dissect.fields import BytesFixedLenField, LESignedIntEnumField
+from .dissect.usb import URB, Descriptor, DeviceDescriptor, GetDescriptor
+from .usbmitm_proto import PROTO_IN, PROTO_OUT
 
 SUBMIT = "S"
 COMPLETE = "C"
@@ -36,7 +48,12 @@ pcap_urb_status = {0: "Success", -115: "Operation in progress", -32: "Broken Pip
 pcap_setup_request = {0: "relevant", 0x2d: "not relevant"}
 pcap_data_present = {0: "present", 0x3c: "not present"}
 
-eptype_to_pcap_type = {CTRL: PCAP_CTRL, INT: PCAP_INT, BULK: PCAP_BULK, ISOC: PCAP_ISOC}
+eptype_to_pcap_type = {
+    USBDefs.EP.TransferType.CTRL: PCAP_CTRL,
+    USBDefs.EP.TransferType.INT: PCAP_INT,
+    USBDefs.EP.TransferType.BULK: PCAP_BULK,
+    USBDefs.EP.TransferType.ISOC: PCAP_ISOC,
+}
 pcaptype_to_eptype = {v: k for k, v in list(eptype_to_pcap_type.items())}
 
 pcap_garbage = '\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x04\x02\x00\x00\x00\x00\x00\x00'
@@ -45,7 +62,11 @@ pcap_garbage = '\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00
 def usb_to_usbpcap(msg):
     pcap = USBPcap()
     pcap.urb_transfert = eptype_to_pcap_type[msg.ep.eptype]
-    pcap.endpoint_direction = OUT if msg.ep.epdir == PROTO_OUT else IN
+    pcap.endpoint_direction = (
+        USBDefs.EP.Direction.OUT
+        if msg.ep.epdir == PROTO_OUT
+        else USBDefs.EP.Direction.IN
+    )
     pcap.endpoint_number = msg.ep.epnum
     pcap.garbage = "\x00" * 24
     return pcap
@@ -103,7 +124,11 @@ def ack_from_msg(msg):
     """ Find ack for the msg """
     ack = usb_to_usbpcap(msg)
     ack.urb_type = "C"
-    if msg.ep.eptype == CTRL and msg.ep.epdir == PROTO_OUT:
+    # TODO: Verify that this comparison is correct.
+    if (
+        msg.ep.eptype == USBDefs.EP.TransferType.CTRL
+        and msg.ep.epdir == USBDefs.EP.Direction.OUT
+    ):
         ack.urb_length = msg.request.wLength
     else:
         ack.urb_length = len(msg.data)
@@ -120,7 +145,9 @@ class USBPcap(Packet):
         LELongField("urb_id", 0),
         CharEnumField("urb_type", SUBMIT, pcap_urb_type),
         ByteEnumField("urb_transfert", PCAP_CTRL, pcap_urb_transfert),
-        BitEnumField("endpoint_direction", IN, 1, bEndpointDirection),
+        BitEnumField(
+            "endpoint_direction", USBDefs.EP.Direction.IN, 1, USBDefs.EP.Direction.desc
+        ),
         BitField("endpoint_number", 0, 7),
         ByteField("device", 1),
         LEShortField("bus_id", 1),

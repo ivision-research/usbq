@@ -1,6 +1,6 @@
 'Default plugin implementations'
 
-from .hookspec import hookimpl, USBQPluginDef
+from .hookspec import USBQPluginDef, hookimpl
 
 
 @hookimpl
@@ -74,4 +74,3 @@ def usbq_declare_plugins():
             clsname='IPythonUI',
         ),
     }
-

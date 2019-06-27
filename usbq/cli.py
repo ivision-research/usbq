@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import click
 import logging
-import pickle
+import sys
 
+import click
 from coloredlogs import ColoredFormatter
 
 from . import __version__
-from .pm import pm, AVAILABLE_PLUGINS, enable_plugins
 from .engine import USBQEngine
-from .exceptions import USBQException
-from .opts import *
+from .opts import (
+    add_options,
+    identity_options,
+    load_ident,
+    network_options,
+    pcap_options,
+    standard_plugin_options,
+)
+from .pm import AVAILABLE_PLUGINS, enable_plugins, pm
 
 __all__ = []
 log = logging.getLogger(__name__)
@@ -201,7 +206,6 @@ def clonedevice(
         disabled=ctx.obj['disable_plugin'],
         enabled=ctx.obj['enable_plugin'],
     )
-    clone = pm.get_plugin('clonedevice')
     proxy = pm.get_plugin('proxy')
     proxy.start()
     USBQEngine().run()

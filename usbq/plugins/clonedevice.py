@@ -1,28 +1,22 @@
-import attr
 import logging
 import pickle
-
 from pathlib import Path
-from statemachine import StateMachine, State
 
+import attr
+from statemachine import State, StateMachine
+
+from ..dissect.usb import GetDescriptor
 from ..hookspec import hookimpl
-from ..pm import pm
+from ..model import DeviceIdentity
 from ..usbmitm_proto import (
-    USBMessageDevice,
-    USBMessageHost,
-    ManagementMessage,
-    ManagementReset,
-    ManagementNewDevice,
-    USBMessageRequest,
-    USBMessageResponse,
     NEW_DEVICE,
     RESET,
+    ManagementMessage,
+    USBMessageDevice,
+    USBMessageResponse,
 )
-from ..model import DeviceIdentity
-from ..dissect.defs import *
-from ..dissect.usb import GetDescriptor, SetConfiguration, ConfigurationDescriptor
 
-__all__ = ['USBDevice']
+__all__ = ['CloneDevice']
 
 log = logging.getLogger(__name__)
 

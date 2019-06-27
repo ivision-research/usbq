@@ -1,13 +1,18 @@
-import attr
 import logging
 
-from scapy.utils import RawPcapWriter
+import attr
 from scapy.all import raw
+from scapy.utils import RawPcapWriter
 
+from ..defs import USB
 from ..hookspec import hookimpl
-from ..usbpcap import ack_from_msg, req_from_msg, usbdev_to_usbpcap, usbhost_to_usbpcap
 from ..usbmitm_proto import PROTO_OUT, USBMessageDevice, USBMessageHost
-from ..dissect.defs import CTRL
+from ..usbpcap import (
+    ack_from_msg,
+    req_from_msg,
+    usbdev_to_usbpcap,
+    usbhost_to_usbpcap,
+)
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +40,7 @@ class PcapFileWriter:
 
     def _do_device(self, msg):
         # We do not receive REQUEST from host if type is not CTRL
-        if msg.ep.eptype != CTRL:
+        if msg.ep.eptype != USB.EP.TransferType.CTRL:
             req = req_from_msg(msg)
             self._pcap.write(raw(req))
 
@@ -55,4 +60,3 @@ class PcapFileWriter:
                 self._do_device(msg)
             else:
                 self._do_host(msg)
-

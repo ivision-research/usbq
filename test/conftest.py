@@ -1,6 +1,6 @@
 import pytest
-
 from scapy.config import conf
+
 from usbq.usbpcap import USBPcap
 
 # Configure scapy to parse USB

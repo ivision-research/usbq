@@ -1,15 +1,22 @@
-import attr
 import logging
 import time
 
-from statemachine import StateMachine, State
+import attr
+from statemachine import State, StateMachine
 
-from ..pm import pm
+from ..defs import USBDefs
+from ..dissect.usb import (
+    ConfigurationDescriptor,
+    DeviceDescriptor,
+    EndpointDescriptor,
+    InterfaceDescriptor,
+    StringDescriptor,
+    bEndpointAddress,
+    bmAttributes,
+)
 from ..hookspec import hookimpl
-from ..usbmitm_proto import USBMessageDevice
 from ..model import DeviceIdentity
-from ..dissect.defs import *
-from ..dissect.usb import *
+from ..pm import pm
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +103,7 @@ class USBHostScan(StateMachine):
         endd_in = {
             'bDescriptorType': 5,
             'bEndpointAddress': bEndpointAddress(
-                direction=IN, garbage=0, endpoint_number=1
+                direction=USBDefs.EP.Direction.IN, garbage=0, endpoint_number=1
             ),
             'bmAttributes': bmAttributes(
                 garbage=0, behaviour=0, synchro=0, transfert=2
@@ -107,7 +114,7 @@ class USBHostScan(StateMachine):
         endd_out = {
             'bDescriptorType': 5,
             'bEndpointAddress': bEndpointAddress(
-                direction=OUT, garbage=0, endpoint_number=2
+                direction=USBDefs.EP.Direction.OUT, garbage=0, endpoint_number=2
             ),
             'bmAttributes': bmAttributes(
                 garbage=0, behaviour=0, synchro=0, transfert=2
@@ -116,8 +123,8 @@ class USBHostScan(StateMachine):
             'bInterval': 0,
         }
         desc = {
-            DEVICE_DESCRIPTOR: DeviceDescriptor(**dd),
-            CONFIGURATION_DESCRIPTOR: [
+            USBDefs.DescriptorType.DEVICE_DESCRIPTOR: DeviceDescriptor(**dd),
+            USBDefs.DescriptorType.CONFIGURATION_DESCRIPTOR: [
                 ConfigurationDescriptor(
                     descriptors=[
                         InterfaceDescriptor(**intd),
@@ -127,7 +134,7 @@ class USBHostScan(StateMachine):
                     **cd,
                 )
             ],
-            STRING_DESCRIPTOR: [
+            USBDefs.DescriptorType.STRING_DESCRIPTOR: [
                 # Supported languages
                 StringDescriptor(),
                 StringDescriptor(bString='USBIQUITOUS'.encode('utf-16le')),
