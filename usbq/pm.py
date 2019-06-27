@@ -35,7 +35,7 @@ AVAILABLE_PLUGINS['usbq_hooks'] = USBQPluginDef(
 )
 
 
-def enable_plugins(pm, pmlist, disabled=[], enabled=[]):
+def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
     extra = [(pdname, {}) for pdname in enabled]
     for pdinfo in pmlist + extra + [('usbq_hooks', {}), ('reload', {})]:
         pdname, pdopts = pdinfo
