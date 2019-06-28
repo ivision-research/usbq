@@ -10,8 +10,6 @@ from ..dissect.usb import GetDescriptor
 from ..hookspec import hookimpl
 from ..model import DeviceIdentity
 from ..usbmitm_proto import ManagementMessage
-from ..usbmitm_proto import NEW_DEVICE
-from ..usbmitm_proto import RESET
 from ..usbmitm_proto import USBMessageDevice
 from ..usbmitm_proto import USBMessageResponse
 
@@ -61,9 +59,12 @@ class CloneDevice(StateMachine):
             return
 
         if type(pkt.content) == ManagementMessage:
-            if pkt.content.management_type == NEW_DEVICE:
+            if (
+                pkt.content.management_type
+                == ManagementMessage.ManagementType.NEW_DEVICE
+            ):
                 self.newdevice(pkt.content.management_content)
-            elif pkt.content.management_type == RESET:
+            elif pkt.content.management_type == ManagementMessage.ManagementType.RESET:
                 log.info('Device reset.')
                 self.reset()
         elif type(pkt.content) == USBMessageResponse:

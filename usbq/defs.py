@@ -30,6 +30,7 @@ class AutoDescEnum:
 
 class USBDefs:
     'USB field values'
+    # https://www.kernel.org/doc/html/latest/driver-api/usb/usb.html#usb-standard-types
 
     class EP:
         'Endpoint field values'

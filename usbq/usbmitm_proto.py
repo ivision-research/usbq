@@ -10,6 +10,7 @@ from scapy.fields import StrField
 from scapy.fields import struct
 from scapy.packet import Packet
 
+from .defs import AutoDescEnum
 from .defs import USBDefs
 from .dissect.fields import TypePacketField
 from .dissect.usb import ConfigurationDescriptor
@@ -28,41 +29,61 @@ __all__ = [
     'USBMessageRequest',
     'USBMessageResponse',
     'USBAck',
-    'RESET',
-    'NEW_DEVICE',
-    'RELOAD',
-    'PROTO_IN',
-    'PROTO_OUT',
 ]
-
-PROTO_IN = 0
-PROTO_OUT = 1
-
-RESET = 0
-NEW_DEVICE = 1
-RELOAD = 2
-
-mitm_type = {0: "USB", 1: "ACK", 2: "MANAGEMENT"}
-management_type = {RESET: "RESET", NEW_DEVICE: "NEW DEVICE", RELOAD: "RELOAD"}
-usbmessage_urb_type = {0: "CONTROL", 1: "ISOCHRONOUS", 2: "BULK", 3: "INTERRUPT"}
-usbmessage_urb_dir = {PROTO_IN: "IN", PROTO_OUT: "OUT"}
-usb_speed = {1: "LOW SPEED", 2: "FULL SPEED", 3: "HIGH SPEED"}
 
 
 class USBMitm(Packet):
     def desc(self):
-        return "%r" % (self,)
+        return '%r' % (self,)
+
+    class MitmType(AutoDescEnum):
+        'USBQ Packet Type'
+
+        # ubq_core/msg.h
+        USB = 0
+        ACK = 1
+        MANAGEMENT = 2
+
+    class ManagementType(AutoDescEnum):
+        'USBQ Management Packet Type'
+
+        # ubq_core/msg.h
+        RESET = 0
+        NEW_DEVICE = 1
+        RELOAD = 2
+
+    class USBSpeed(AutoDescEnum):
+        'USBQ Device Speed'
+
+        # kernel linux/usb/ch9.h
+        LOW_SPEED = 1
+        FULL_SPEED = 2
+        HIGH_SPEED = 3
+
+    class URBEPDirection(AutoDescEnum):
+        '''
+        URB EP direction
+
+        From the Linux kernel's perspective the direction of the
+        endpoint.
+        '''
+
+        # ubq_core/types.h
+        URB_IN = 0
+        URB_OUT = 1
 
 
 class USBEp(USBMitm):
     fields_desc = [
-        LEShortField("epnum", 0),
-        EnumField("eptype", USBDefs.EP.TransferType.CTRL, usbmessage_urb_type, "<I"),
-        EnumField("epdir", PROTO_IN, usbmessage_urb_dir, "<I"),
+        LEShortField('epnum', 0),
+        EnumField(
+            'eptype', USBDefs.EP.TransferType.CTRL, USBDefs.EP.TransferType.desc, '<I'
+        ),
+        EnumField('epdir', USBDefs.EP.Direction.IN, USBDefs.EP.Direction.desc, '<I'),
     ]
 
     def extract_padding(self, s):
-        return "", s
+        return '', s
 
     def is_ctrl_0(self):
         return self.epnum == 0 and self.eptype == USBDefs.EP.TransferType.CTRL
@@ -73,22 +94,22 @@ class USBEp(USBMitm):
 
 class USBAck(USBMitm):
     fields_desc = [
-        PacketField("ep", USBEp(), USBEp),
-        LESignedIntField("status", 0),
-        StrField("data", ""),
+        PacketField('ep', USBEp(), USBEp),
+        LESignedIntField('status', 0),
+        StrField('data', ''),
     ]
 
     def desc(self):
-        return "ACK %r" % (self.status,)
+        return 'ACK %r' % (self.status,)
 
 
 class USBMessageRequest(USBMitm):
     fields_desc = [
-        PacketField("ep", USBEp(), USBEp),
+        PacketField('ep', USBEp(), USBEp),
         ConditionalField(
-            PacketField("request", GetDescriptor(), URB), lambda p: p.ep.is_ctrl_0()
+            PacketField('request', GetDescriptor(), URB), lambda p: p.ep.is_ctrl_0()
         ),
-        StrField("data", ""),
+        StrField('data', ''),
     ]
 
     def get_usb_payload(self):
@@ -101,21 +122,21 @@ class USBMessageRequest(USBMitm):
         if self.ep.is_ctrl_0():
             s.append(self.request.desc())
         if len(self.data) > 0:
-            s.append("+data (len:%u)" % (len(self.data)))
-        return " ".join(s)
+            s.append('+data (len:%u)' % (len(self.data)))
+        return ' '.join(s)
 
 
 class USBMessageResponse(USBMitm):
     fields_desc = [
-        PacketField("ep", USBEp(), USBEp),
+        PacketField('ep', USBEp(), USBEp),
         ConditionalField(
-            PacketField("request", GetDescriptor(), URB), lambda p: p.ep.is_ctrl_0()
+            PacketField('request', GetDescriptor(), URB), lambda p: p.ep.is_ctrl_0()
         ),
         ConditionalField(
-            PacketField("response", DeviceDescriptor(), Descriptor),
+            PacketField('response', DeviceDescriptor(), Descriptor),
             lambda p: p.ep.is_ctrl_0() and type(p.request) is GetDescriptor,
         ),
-        StrField("data", ""),
+        StrField('data', ''),
     ]
 
     def get_usb_payload(self):
@@ -128,46 +149,51 @@ class USBMessageResponse(USBMitm):
         if self.ep.is_ctrl_0() and type(self.request) is GetDescriptor:
             return self.response.desc()
         if len(self.data) > 0:
-            s.append("+data (len:%u)" % (len(self.data)))
-        return " ".join(s)
+            s.append('+data (len:%u)' % (len(self.data)))
+        return ' '.join(s)
 
 
 class ManagementNewDevice(USBMitm):
     fields_desc = [
-        EnumField("speed", 3, usb_speed, "<I"),
-        PacketField("device", DeviceDescriptor(), DeviceDescriptor),
+        EnumField('speed', USBMitm.USBSpeed.HIGH_SPEED, USBMitm.USBSpeed.desc, '<I'),
+        PacketField('device', DeviceDescriptor(), DeviceDescriptor),
         PacketField(
-            "configuration", ConfigurationDescriptor(), ConfigurationDescriptor
+            'configuration', ConfigurationDescriptor(), ConfigurationDescriptor
         ),
     ]
 
     def desc(self):
-        return "NewDevice"
+        return 'NewDevice'
 
 
 class ManagementReset(USBMitm):
     def desc(self):
-        return "Reset"
+        return 'Reset'
 
 
 class ManagementReload(USBMitm):
     def desc(self):
-        return "Reload"
+        return 'Reload'
 
 
 class ManagementMessage(USBMitm):
     'USBQ management message'
 
     fields_desc = [
-        EnumField("management_type", None, management_type, "<I"),
+        EnumField(
+            'management_type',
+            USBMitm.ManagementType.RESET,
+            USBMitm.ManagementType.desc,
+            '<I',
+        ),
         TypePacketField(
-            "management_content",
+            'management_content',
             ManagementReset(),
-            "management_type",
+            'management_type',
             {
-                RESET: ManagementReset,
-                NEW_DEVICE: ManagementNewDevice,
-                RELOAD: ManagementReload,
+                USBMitm.ManagementType.RESET: ManagementReset,
+                USBMitm.ManagementType.NEW_DEVICE: ManagementNewDevice,
+                USBMitm.ManagementType.RELOAD: ManagementReload,
             },
         ),
     ]  # FIXME: ManagementReset is empty, so if there is nothing to dissect, management_content will be the default value
@@ -175,18 +201,18 @@ class ManagementMessage(USBMitm):
     def post_build(self, p, pay):
         if self.management_type is None:
             if isinstance(self.management_content, ManagementNewDevice):
-                p = struct.pack("<H", NEW_DEVICE) + p[2:]
+                p = struct.pack('<H', USBMitm.ManagementType.NEW_DEVICE) + p[2:]
             elif isinstance(self.management_content, ManagementReload):
-                p = struct.pack("<H", RELOAD) + p[2:]
+                p = struct.pack('<H', USBMitm.ManagementType.RELOAD) + p[2:]
             else:
-                p = struct.pack("<H", RESET) + p[2:]
+                p = struct.pack('<H', USBMitm.ManagementType.RESET) + p[2:]
         return p + pay
 
     def desc(self):
-        if self.management_type == RESET:
-            return "Reset"
-        elif self.management_type == RELOAD:
-            return "Reload"
+        if self.management_type == USBMitm.ManagementType.RESET:
+            return 'Reset'
+        elif self.management_type == USBMitm.ManagementType.RELOAD:
+            return 'Reload'
         else:
             return self.management_content.desc()
 
@@ -203,7 +229,7 @@ class USBMessage(USBMitm):
 
     def post_build(self, p, pay):
         if self.len is None:
-            p = struct.pack("<I", len(p)) + p[4:]
+            p = struct.pack('<I', len(p)) + p[4:]
         return p + pay
 
     def get_usb_payload(self):
@@ -213,14 +239,14 @@ class USBMessage(USBMitm):
 class USBMessageDevice(USBMessage):
     'UDP packet payload from ubq_core bearing USB traffic from device->host.'
 
-    name = "USBMessageDevice"
+    name = 'USBMessageDevice'
     fields_desc = [
-        LEIntField("len", None),
-        EnumField("type", 0, mitm_type, "<I"),
+        LEIntField('len', None),
+        EnumField('type', USBMitm.MitmType.USB, USBMitm.MitmType.desc, '<I'),
         TypePacketField(
-            "content",
+            'content',
             ManagementMessage(),
-            "type",
+            'type',
             {0: USBMessageResponse, 1: USBAck, 2: ManagementMessage},
         ),
     ]
@@ -232,14 +258,16 @@ class USBMessageDevice(USBMessage):
 class USBMessageHost(USBMessage):
     'UDP packet payload from ubq_core bearing USB traffic from host->device.'
 
-    name = "USBMessageHost"
+    name = 'USBMessageHost'
     fields_desc = [
-        LEIntField("len", None),
-        EnumField("type", 0, mitm_type, "<I"),
+        LEIntField('len', None),
+        EnumField(
+            'type', USBMitm.ManagementType.RESET, USBMitm.ManagementType.desc, '<I'
+        ),
         TypePacketField(
-            "content",
+            'content',
             ManagementMessage(),
-            "type",
+            'type',
             {0: USBMessageRequest, 1: USBAck, 2: ManagementMessage},
         ),
     ]

@@ -13,8 +13,6 @@ from ..model import DeviceIdentity
 from ..pm import pm
 from ..usbmitm_proto import ManagementMessage
 from ..usbmitm_proto import ManagementReset
-from ..usbmitm_proto import NEW_DEVICE
-from ..usbmitm_proto import RESET
 from ..usbmitm_proto import USBMessageDevice
 from ..usbmitm_proto import USBMessageHost
 from ..usbmitm_proto import USBMessageRequest
@@ -132,7 +130,7 @@ class USBDevice(StateMachine):
 
         self._send_to_host(
             ManagementMessage(
-                management_type=NEW_DEVICE,
+                management_type=ManagementMessage.ManagementType.NEW_DEVICE,
                 management_content=self._ident.to_new_identity(),
             )
         )
@@ -143,7 +141,8 @@ class USBDevice(StateMachine):
         log.info('Disconnecting emulated USB device.')
         self._send_to_host(
             ManagementMessage(
-                management_type=RESET, management_content=ManagementReset()
+                management_type=ManagementMessage.ManagementType.RESET,
+                management_content=ManagementReset(),
             )
         )
 

@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import attr
 from scapy.all import raw
@@ -6,7 +7,6 @@ from scapy.utils import RawPcapWriter
 
 from ..defs import USBDefs
 from ..hookspec import hookimpl
-from ..usbmitm_proto import PROTO_OUT
 from ..usbmitm_proto import USBMessageDevice
 from ..usbmitm_proto import USBMessageHost
 from ..usbpcap import ack_from_msg
@@ -34,7 +34,7 @@ class PcapFileWriter:
         self._pcap.write(raw(pcap_pkt))
 
         # We do not receive ACK from device for OUT data
-        if msg.ep.epdir == PROTO_OUT:
+        if msg.ep.epdir == msg.URBEPDirection.URB_OUT:
             ack = ack_from_msg(msg)
             self._pcap.write(raw(ack))
 
@@ -49,10 +49,10 @@ class PcapFileWriter:
         self._pcap.write(raw(pcap_pkt))
 
     @hookimpl
-    def usbq_log_pkt(self, pkt):
+    def usbq_log_pkt(self, pkt: Union[USBMessageDevice, USBMessageHost]):
         # Only log USB Host or Device type packets to the pcap file
         if type(pkt) in [USBMessageDevice, USBMessageHost]:
-            if pkt.type != 0:
+            if pkt.type != pkt.MitmType.USB:
                 return
 
             msg = pkt.content

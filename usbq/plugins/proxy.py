@@ -12,7 +12,6 @@ from ..pm import pm
 from ..usbmitm_proto import ManagementMessage
 from ..usbmitm_proto import ManagementReload
 from ..usbmitm_proto import ManagementReset
-from ..usbmitm_proto import RESET
 from ..usbmitm_proto import USBMessageDevice
 from ..usbmitm_proto import USBMessageHost
 
@@ -145,7 +144,8 @@ class ProxyPlugin(StateMachine):
 
         self._send_device_mgmt(
             ManagementMessage(
-                management_type=RESET, management_content=ManagementReset()
+                management_type=ManagementMessage.ManagementType.RESET,
+                management_content=ManagementReset(),
             )
         )
 
@@ -154,7 +154,8 @@ class ProxyPlugin(StateMachine):
 
         self._send_device_mgmt(
             ManagementMessage(
-                management_type=RESET, management_content=ManagementReload()
+                management_type=ManagementMessage.ManagementType.RELOAD,
+                management_content=ManagementReload(),
             )
         )
 
