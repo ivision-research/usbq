@@ -162,7 +162,3 @@ class ProxyPlugin(StateMachine):
                 management_content=ManagementReload(),
             )
         )
-
-    @hookimpl
-    def usbq_teardown(self):
-        self.reset()
