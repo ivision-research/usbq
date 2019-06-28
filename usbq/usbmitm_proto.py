@@ -37,7 +37,7 @@ class USBMitm(Packet):
         return '%r' % (self,)
 
     class MitmType(AutoDescEnum):
-        'USBQ Packet Type'
+        'USBQ Protocol Packet Type'
 
         # ubq_core/msg.h
         USB = 0

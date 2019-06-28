@@ -132,12 +132,16 @@ class ProxyPlugin(StateMachine):
         log.info('Starting proxy.')
 
     def _send_host_mgmt(self, pkt):
-        data = pm.hook.usbq_host_encode(pkt=USBMessageDevice(type=2, content=pkt))
+        data = pm.hook.usbq_host_encode(
+            pkt=USBMessageDevice(type=USBMessageHost.MitmType.MANAGEMENT, content=pkt)
+        )
         self.usbq_send_host_packet(data)
 
     def _send_device_mgmt(self, pkt):
-        data = pm.hook.usbq_device_encode(pkt=USBMessageHost(type=2, content=pkt))
-        self.usbq_send_host_packet(data)
+        data = pm.hook.usbq_device_encode(
+            pkt=USBMessageHost(type=USBMessageDevice.MitmType.MANAGEMENT, content=pkt)
+        )
+        self.usbq_send_device_packet(data)
 
     def on_reset(self):
         log.info('Reset device.')

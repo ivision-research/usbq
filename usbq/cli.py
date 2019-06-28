@@ -135,7 +135,8 @@ def mitm(ctx, proxy_addr, proxy_port, listen_addr, listen_port, pcap):
         enabled=ctx.obj['enable_plugin'],
     )
     proxy = pm.get_plugin('proxy')
-    proxy.start()
+    proxy.reset()
+    proxy.reload()
     USBQEngine().run()
 
 
