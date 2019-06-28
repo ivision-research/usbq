@@ -19,6 +19,11 @@ class AutoDescEnum:
 
         assert cls.__doc__ is not None, 'Add documentation to enumeration'
 
+        # Update documentation with values
+        cls.__doc__ += '\n\n'
+        for key, value in sorted(cls.desc.items(), key=lambda kv: kv[0]):
+            cls.__doc__ += f'{key}: {value}\n'
+
     def __class_getitem__(cls, key):
         return cls.desc.get(key, f'[UNKNOWN] (0x{key:02x})')
 
