@@ -87,12 +87,14 @@ class ProxyPlugin(StateMachine):
     @hookimpl
     def usbq_host_has_packet(self):
         if self._proxy_host:
-            return self._has_data([self._host_sock])
+            if self._has_data([self._host_sock]):
+                return True
 
     @hookimpl
     def usbq_device_has_packet(self):
         if self._proxy_device:
-            return self._has_data([self._device_sock])
+            if self._has_data([self._device_sock]):
+                return True
 
     @hookimpl
     def usbq_wait_for_packet(self):
@@ -107,7 +109,8 @@ class ProxyPlugin(StateMachine):
             return True
         else:
             # Wait
-            return self._has_data(self._socks, timeout=self.timeout)
+            if self._has_data(self._socks, timeout=self.timeout):
+                return True
 
     @hookimpl
     def usbq_get_host_packet(self):

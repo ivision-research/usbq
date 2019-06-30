@@ -88,18 +88,36 @@ def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
 def enable_tracing():
     # Trace pluggy
     tracer = logging.getLogger('trace')
+    before_msg = None
 
     def before(hook_name, hook_impls, kwargs):
+        nonlocal before_msg
+
         arglst = [
             f'{key}={repr(value)}'
             for key, value in sorted(kwargs.items(), key=lambda v: v[0])
         ]
         argstr = ', '.join(arglst)
         plst = ', '.join([p.plugin_name for p in reversed(hook_impls)])
-        tracer.debug(f'{hook_name}({argstr}) [{plst}]')
+        before_msg = f'{hook_name}({argstr}) [{plst}]'
 
     def after(outcome, hook_name, hook_impls, kwargs):
+        nonlocal before_msg
+
         res = outcome.get_result()
-        tracer.debug(f'{hook_name} -> {repr(res)} [{type(res)}]')
+        has_result = [
+            type(res) == list and len(res) > 0,
+            type(res) != list and res is not None,
+            hook_name
+            in [
+                'usbq_device_modify',
+                'usbq_host_modify',
+                'usbq_connected',
+                'usbq_disconnected',
+                'usbq_teardown',
+            ],
+        ]
+        if any(has_result):
+            tracer.debug(f'{before_msg} -> {repr(res)} [{type(res)}]')
 
     pm.add_hookcall_monitoring(before, after)

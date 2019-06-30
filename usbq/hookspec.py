@@ -62,7 +62,7 @@ class USBQHookSpec:
     #  DEVICE: Hooks for USB packets sent from the device to the host
     #
 
-    @hookspec
+    @hookspec(firstresult=True)
     def usbq_device_has_packet(self):
         '''
         Return True if data is available from the USB host or device or False
@@ -230,7 +230,25 @@ class USBQHookSpec:
         '''
 
     @hookspec
+    def usbq_connected(self):
+        '''
+        Indicates that the device specified by --usb-id has been connected.
+
+        Return value is ignored.
+        '''
+
+    @hookspec
+    def usbq_disconnected(self):
+        '''
+        Indicates that the device specified by --usb-id has been disconnected.
+
+        Return value is ignored.
+        '''
+
+    @hookspec
     def usbq_teardown(self):
         '''
         USBQ is terminating (kindly). Perform any teardown steps that are required.
+
+        Return value is ignored.
         '''

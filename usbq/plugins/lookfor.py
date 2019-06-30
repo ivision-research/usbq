@@ -6,6 +6,7 @@ from statemachine import State
 from statemachine import StateMachine
 
 from ..hookspec import hookimpl
+from ..pm import pm
 
 log = logging.getLogger(__name__)
 
@@ -56,9 +57,11 @@ class LookForDevice(StateMachine):
 
     def on_connected(self):
         log.info(f'USB device {self.usb_id} connected')
+        pm.hook.usbq_connected()
 
     def on_disconnected(self):
         log.info(f'USB device {self.usb_id} disconnected')
+        pm.hook.usbq_disconnected()
 
     @hookimpl
     def usbq_tick(self):
