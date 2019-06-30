@@ -12,6 +12,7 @@ __all__ = [
     'add_options',
     'standard_plugin_options',
     'load_ident',
+    'usb_device_options',
 ]
 
 log = logging.getLogger(__name__)
@@ -62,6 +63,15 @@ identity_options = [
         default=None,
         type=click.File('rb'),
         help='File to load pickled instance of a USB device.',
+    )
+]
+
+usb_device_options = [
+    click.option(
+        '--usb-id',
+        default=None,
+        type=str,
+        help='USB product and vendor ID (fmt: xxxx:xxxx)',
     )
 ]
 

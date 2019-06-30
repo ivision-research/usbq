@@ -12,7 +12,7 @@ from .hookspec import USBQ_EP
 from .hookspec import USBQHookSpec
 from .hookspec import USBQPluginDef
 
-__all__ = ['AVAILABLE_PLUGINS', 'enable_plugins']
+__all__ = ['AVAILABLE_PLUGINS', 'enable_plugins', 'enable_tracing']
 
 log = logging.getLogger(__name__)
 
@@ -83,3 +83,23 @@ def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
                 )
             else:
                 raise
+
+
+def enable_tracing():
+    # Trace pluggy
+    tracer = logging.getLogger('trace')
+
+    def before(hook_name, hook_impls, kwargs):
+        arglst = [
+            f'{key}={repr(value)}'
+            for key, value in sorted(kwargs.items(), key=lambda v: v[0])
+        ]
+        argstr = ', '.join(arglst)
+        plst = ', '.join([p.plugin_name for p in reversed(hook_impls)])
+        tracer.debug(f'{hook_name}({argstr}) [{plst}]')
+
+    def after(outcome, hook_name, hook_impls, kwargs):
+        res = outcome.get_result()
+        tracer.debug(f'{hook_name} -> {repr(res)} [{type(res)}]')
+
+    pm.add_hookcall_monitoring(before, after)

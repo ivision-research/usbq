@@ -73,4 +73,10 @@ def usbq_declare_plugins():
             mod='usbq.plugins.ipython',
             clsname='IPythonUI',
         ),
+        'lookfor': USBQPluginDef(
+            name='lookfor',
+            desc='look for a specific USB device to appear',
+            mod='usbq.plugins.lookfor',
+            clsname='LookForDevice',
+        ),
     }
