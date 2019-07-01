@@ -1,5 +1,7 @@
 import importlib
+import inspect
 import logging
+import traceback
 from pathlib import Path
 
 import attr
@@ -39,7 +41,19 @@ class ReloadUSBQHooks:
         else:
             return False
 
-    @hookimpl
+    def _catch(self, outcome):
+        try:
+            outcome.get_result()
+        except Exception:
+            frm = inspect.trace()[-1]
+            mod = inspect.getmodule(frm[0])
+            if mod.__name__ == HOOK_MOD:
+                log.critical(f'Error executing hook in {HOOK_MOD}. Disabling plugin.')
+                traceback.print_tb(outcome.excinfo[2])
+                pm.unregister(name=HOOK_MOD)
+                outcome.force_result(None)
+
+    @hookimpl(hookwrapper=True)
     def usbq_tick(self):
         if self.changed:
             # Reload
@@ -48,6 +62,7 @@ class ReloadUSBQHooks:
                 importlib.reload(mod)
             except Exception:
                 log.critical('Could not reload usbq_hooks.py.')
+                yield
                 return
 
             # Unregister
@@ -57,3 +72,38 @@ class ReloadUSBQHooks:
             cls = getattr(mod, HOOK_CLSNAME)
             pm.register(cls(), name=HOOK_MOD)
             log.info('Reloaded usbq_hooks.py.')
+
+        outcome = yield
+        self._catch(outcome)
+
+    def _wrapper(self, *args, **kwargs):
+        outcome = yield
+        self._catch(outcome)
+
+
+# Create usbq_hook error handlers for all defined hooks
+for hookname in [
+    'usbq_wait_for_packet',
+    'usbq_log_pkt',
+    'usbq_device_has_packet',
+    'usbq_get_device_packet',
+    'usbq_device_decode',
+    'usbq_device_modify',
+    'usbq_device_encode',
+    'usbq_host_has_packet',
+    'usbq_get_host_packet',
+    'usbq_host_decode',
+    'usbq_host_encode',
+    'usbq_host_modify',
+    'usbq_send_device_packet',
+    'usbq_send_host_packet',
+    'usbq_device_identity',
+    'usbq_handle_device_request',
+    'usbq_ipython_ns',
+    'usbq_connected',
+    'usbq_disconnected',
+    'usbq_teardown',
+]:
+    setattr(
+        ReloadUSBQHooks, hookname, hookimpl(ReloadUSBQHooks._wrapper, hookwrapper=True)
+    )

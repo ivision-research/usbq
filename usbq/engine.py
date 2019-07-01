@@ -16,9 +16,14 @@ class USBQEngine:
 
     def _do_device_packet(self):
         data = pm.hook.usbq_get_device_packet()
+        if data is None:
+            return
 
         # Decode and log
         pkt = pm.hook.usbq_device_decode(data=data)
+        if pkt is None:
+            return
+
         pm.hook.usbq_log_pkt(pkt=pkt)
 
         # Mangle
@@ -26,15 +31,22 @@ class USBQEngine:
 
         # Encode
         send_data = pm.hook.usbq_device_encode(pkt=pkt)
+        if send_data is None:
+            return
 
         # Forward
         pm.hook.usbq_send_host_packet(data=send_data)
 
     def _do_host_packet(self):
         data = pm.hook.usbq_get_host_packet()
+        if data is None:
+            return
 
         # Decode and log
         pkt = pm.hook.usbq_host_decode(data=data)
+        if pkt is None:
+            return
+
         pm.hook.usbq_log_pkt(pkt=pkt)
 
         # Mangle
@@ -42,6 +54,8 @@ class USBQEngine:
 
         # Encode
         send_data = pm.hook.usbq_host_encode(pkt=pkt)
+        if send_data is None:
+            return
 
         # Forward
         try:

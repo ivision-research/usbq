@@ -40,7 +40,7 @@ AVAILABLE_PLUGINS['usbq_hooks'] = USBQPluginDef(
 
 def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
     extra = [(pdname, {}) for pdname in enabled]
-    for pdinfo in pmlist + extra + [('usbq_hooks', {}), ('reload', {})]:
+    for pdinfo in [('reload', {})] + pmlist + extra + [('usbq_hooks', {})]:
         pdname, pdopts = pdinfo
 
         if pdname not in AVAILABLE_PLUGINS:
@@ -81,6 +81,11 @@ def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
                 log.info(
                     f'Could not load optional plugin {pd.name}: Could not instantiate {pd.clsname}.'
                 )
+            else:
+                raise
+        except Exception as e:
+            if pd.mod == 'usbq_hooks':
+                log.critical(f'Could not load usbq_hooks.py: {e}')
             else:
                 raise
 
