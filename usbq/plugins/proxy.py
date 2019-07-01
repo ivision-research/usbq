@@ -48,6 +48,10 @@ class ProxyPlugin(StateMachine):
     reload = idle.to(running)
 
     EMPTY = []
+    MANAGEMENT_MSG = {
+        ManagementMessage.ManagementType.NEW_DEVICE: 'New device connected to USBQ proxy',
+        ManagementMessage.ManagementType.RESET: 'Device reset sent from USBQ proxy',
+    }
 
     def __attrs_post_init__(self):
         # Workaround to mesh attr and StateMachine
@@ -56,6 +60,8 @@ class ProxyPlugin(StateMachine):
         self._proxy_host = True
         self._proxy_device = True
         self._device_dst = None
+        self._detected_host = False
+        self._detected_device = False
 
         if self._device_addr is None or self._device_port is None:
             self._proxy_device = False
@@ -115,11 +121,21 @@ class ProxyPlugin(StateMachine):
     @hookimpl
     def usbq_get_host_packet(self):
         data, self._host_dst = self._host_sock.recvfrom(4096)
+
+        if not self._detected_host:
+            log.info('First USBQ host packet detected from proxy')
+            self._detected_host = True
+
         return data
 
     @hookimpl
     def usbq_get_device_packet(self):
         data, self._device_dst = self._device_sock.recvfrom(4096)
+
+        if not self._detected_device:
+            log.info('First USBQ device packet detected from proxy')
+            self._detected_device = True
+
         return data
 
     @hookimpl
@@ -130,6 +146,16 @@ class ProxyPlugin(StateMachine):
     def usbq_send_device_packet(self, data):
         if self._device_dst is not None:
             return self._device_sock.sendto(data, self._device_dst) > 0
+
+    @hookimpl
+    def usbq_log_pkt(self, pkt):
+        if ManagementMessage in pkt:
+            msg = self.MANAGEMENT_MSG.get(pkt.content.management_type, None)
+            if msg is not None:
+                log.info(msg)
+
+            if pkt.content.management_type == ManagementMessage.ManagementType.RESET:
+                self._detected_device = False
 
     def on_start(self):
         log.info('Starting proxy.')

@@ -56,11 +56,11 @@ class LookForDevice(StateMachine):
             self.disconnected()
 
     def on_connected(self):
-        log.info(f'USB device {self.usb_id} connected')
+        log.info(f'USB device {self.usb_id} connected to host')
         pm.hook.usbq_connected()
 
     def on_disconnected(self):
-        log.info(f'USB device {self.usb_id} disconnected')
+        log.info(f'USB device {self.usb_id} disconnected from host')
         pm.hook.usbq_disconnected()
 
     @hookimpl
