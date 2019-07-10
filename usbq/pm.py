@@ -40,7 +40,11 @@ AVAILABLE_PLUGINS['usbq_hooks'] = USBQPluginDef(
 
 def enable_plugins(pm, pmlist=[], disabled=[], enabled=[]):
     extra = [(pdname, {}) for pdname in enabled]
-    for pdinfo in [('reload', {})] + pmlist + extra + [('usbq_hooks', {})]:
+    pdlist = [('reload', {})] + pmlist + extra + [('usbq_hooks', {})]
+    pdnames = [pdinfo[0] for pdinfo in pdlist]
+    log.info(f'Loading plugins: {", ".join(pdnames)}')
+
+    for pdinfo in pdlist:
         pdname, pdopts = pdinfo
 
         if pdname not in AVAILABLE_PLUGINS:
