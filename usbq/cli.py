@@ -43,6 +43,10 @@ def _setup_logging(logfile, debug):
     root = logging.getLogger()
     root.setLevel(level)
 
+    # shush little ones
+    for mod in ['scapy.loading', 'scapy.runtime']:
+        logging.getLogger(mod).setLevel(logging.CRITICAL)
+
     # Colors and formats
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(level)
