@@ -33,13 +33,13 @@ def usbq_declare_plugins():
         ),
         'hostscan': USBQPluginDef(
             name='hostscan',
-            desc='Scan host for supported devices.',
+            desc='WIP: Scan host for supported devices.',
             mod='usbq.plugins.hostscan',
             clsname='USBHostScan',
         ),
         'device': USBQPluginDef(
             name='device',
-            desc='Emulate a USB device.',
+            desc='WIP: Emulate a USB device.',
             mod='usbq.plugins.device',
             clsname='USBDevice',
         ),
@@ -51,13 +51,13 @@ def usbq_declare_plugins():
         ),
         'hostfuzz': USBQPluginDef(
             name='hostfuzz',
-            desc='Fuzz device packets headed to the host.',
+            desc='WIP: Fuzz device packets headed to the host.',
             mod='usbq.plugins.hostfuzz',
             clsname='Hostfuzz',
         ),
         'clonedevice': USBQPluginDef(
             name='clonedevice',
-            desc='Observe device behavior to clone device configuration and descriptors.',
+            desc='WIP: Observe device behavior to clone device configuration and descriptors.',
             mod='usbq.plugins.clonedevice',
             clsname='CloneDevice',
         ),
