@@ -31,35 +31,11 @@ def usbq_declare_plugins():
             mod='usbq.plugins.encode',
             clsname='USBEncode',
         ),
-        'hostscan': USBQPluginDef(
-            name='hostscan',
-            desc='WIP: Scan host for supported devices.',
-            mod='usbq.plugins.hostscan',
-            clsname='USBHostScan',
-        ),
-        'device': USBQPluginDef(
-            name='device',
-            desc='WIP: Emulate a USB device.',
-            mod='usbq.plugins.device',
-            clsname='USBDevice',
-        ),
         'hexdump': USBQPluginDef(
             name='hexdump',
             desc='Display USBQ packet and hexdump of USB payload.',
             mod='usbq.plugins.hexdump',
             clsname='Hexdump',
-        ),
-        'hostfuzz': USBQPluginDef(
-            name='hostfuzz',
-            desc='WIP: Fuzz device packets headed to the host.',
-            mod='usbq.plugins.hostfuzz',
-            clsname='Hostfuzz',
-        ),
-        'clonedevice': USBQPluginDef(
-            name='clonedevice',
-            desc='WIP: Observe device behavior to clone device configuration and descriptors.',
-            mod='usbq.plugins.clonedevice',
-            clsname='CloneDevice',
         ),
         'reload': USBQPluginDef(
             name='reload',
